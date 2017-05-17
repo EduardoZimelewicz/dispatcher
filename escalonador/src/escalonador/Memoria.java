@@ -3,15 +3,12 @@ package escalonador;
 import java.util.Vector;
 
 public class Memoria {
-    public int tamanho;
+    public int tamanho = 1024;
     public int tamanhoOcupado;
-    public Vector<Processo> pagina = new Vector<Processo>(16);
+    public Vector<Processo> quadros = new Vector<Processo>(this.tamanho/64);
     
     public Memoria(){
-        this.tamanho = 1024;
-        for(int i = 0; i < 16; i++){
-            this.pagina.set(i, null);
-        }
+        
     }
     
     public boolean freeToProcess(Processo p){
@@ -20,7 +17,8 @@ public class Memoria {
         return false;
     }
     
-    public void alocateP(Processo p){
+    public void alocarP(Processo p){
         
     }
+    
 }

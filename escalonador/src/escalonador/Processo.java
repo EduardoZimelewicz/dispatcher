@@ -22,4 +22,5 @@ public class Processo {
         System.out.print(this.nome + " ");
         System.out.println(this.estado + " ");
     }
+    
 }
