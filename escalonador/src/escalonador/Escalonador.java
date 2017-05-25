@@ -17,13 +17,16 @@ public class Escalonador{
     public static boolean recursosDisp(Processo p){
         if(Escalonador.cpu != 0){
             Escalonador.cpu--;
-            if(p.nImpr <= Escalonador.impressora && Escalonador.impressora != 0){
+            if(p.pri == 0){
+                return true;
+            }
+            if(p.nImpr <= Escalonador.impressora && Escalonador.impressora != 0 && p.nImpr != 0){
                 Escalonador.impressora--;
-                if(p.nScnr <= Escalonador.scanner && Escalonador.scanner != 0){
+                if(p.nScnr <= Escalonador.scanner && Escalonador.scanner != 0 && p.nScnr != 0){
                     Escalonador.scanner--;
-                    if(p.nCds <= Escalonador.cd && Escalonador.cd != 0){
+                    if(p.nCds <= Escalonador.cd && Escalonador.cd != 0 && p.nCds != 0){
                         Escalonador.cd--;
-                        if(p.nMdm <= Escalonador.modem && Escalonador.modem != 0){
+                        if(p.nMdm <= Escalonador.modem && Escalonador.modem != 0 && p.nMdm != 0){
                             Escalonador.modem--;
                             return true;
                         }
@@ -40,8 +43,7 @@ public class Escalonador{
     }
     
     public static void fcFS(Queue <Processo> f, Memoria m){     
-        
-            if(!f.isEmpty()){
+        if(!f.isEmpty()){
                     if(m.freeToProcess(f.element())){
                         System.out.println(f.element().nome + " " + "carregado para memória");
                         m.alocarP(f.remove());
@@ -51,9 +53,9 @@ public class Escalonador{
                     }
                 }
 
-            else if(m.temEstFinalizado()){
-                    m.rmvEstadoFinalizado();
-            }
+        if(m.temEstFinalizado()){
+            m.rmvEstadoFinalizado();
+        }
     }
     
     public static void feedBack(Queue <Processo> f, Queue <Processo> f1, Queue <Processo> f2, Queue <Processo> f3){
@@ -101,7 +103,7 @@ public class Escalonador{
        //Thread feedback = new Thread(() ->feedBack(fu, f1, f2, f3));
        //Thread fcfs = new Thread(() ->fcFS(ftr, memoria));
               
-       while (!fe.isEmpty() || memoria.prcssMemoria()){
+       while (!fe.isEmpty() || !fu.isEmpty() || !ftr.isEmpty() || memoria.temPrcssMemoria()){
             
             if(!fe.isEmpty()){
               if((fe.element().tempoC == clock) && recursosDisp(fe.element())){
@@ -113,7 +115,7 @@ public class Escalonador{
             }
            
            
-           if(!ftr.isEmpty()){
+           if(!ftr.isEmpty() || memoria.temPrcssMemoria()){
              //feedback.start();
              fcFS(ftr,memoria);
            }
@@ -123,10 +125,10 @@ public class Escalonador{
            }
           
            
-           clock++;
            if(memoria.tamanhoOcupado > 0){
                memoria.setTempoSer();
            }
+           clock++;
        }
        
    }

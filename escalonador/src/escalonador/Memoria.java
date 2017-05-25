@@ -11,14 +11,15 @@ public class Memoria {
         quadros.setSize(this.tamanho/64);
     }
     
-    public boolean prcssMemoria(){
-        if(quadros.isEmpty())
-            return true;
+    public boolean temPrcssMemoria(){
+        for(int i = 0; i < quadros.size(); i++)
+            if(quadros.elementAt(i) != null)
+                return true;
         return false;
     }
     
     public boolean freeToProcess(Processo p){
-        if (p.tam > this.tamanhoOcupado && !memoriaCheia())
+        if (!memoriaCheia() && (p.tam <= this.tamanho - this.tamanhoOcupado))
             return true;
         return false;
     }
@@ -35,39 +36,48 @@ public class Memoria {
     
     public boolean temEstFinalizado(){
         for(int i = 0; i < quadros.size(); i++){
-            if(quadros.elementAt(i).tProc == quadros.elementAt(i).serTotal)
-                return true;
+            if(quadros.elementAt(i) != null){
+                if(quadros.elementAt(i).tProc == quadros.elementAt(i).serTotal)
+                    return true;
+            }
         }
         return false;
     }
     
     public void rmvEstadoFinalizado(){
         for(int i = 0; i < quadros.size(); i++){
-            if(quadros.elementAt(i).tProc == quadros.elementAt(i).serTotal){
-                quadros.elementAt(i).estado = Estados.FINALIZADO;
-                System.out.println(quadros.elementAt(i).nome + "finalizado");
-                quadros.remove(i);
+            if(quadros.elementAt(i) != null){
+                if(quadros.elementAt(i).tProc == quadros.elementAt(i).serTotal){
+                    quadros.elementAt(i).estado = Estados.FINALIZADO;
+                    System.out.println(quadros.elementAt(i).nome + " " + "finalizado no tempo " + Escalonador.clock);
+                    quadros.remove(i);
+                    }
             }
         }
     }
     
     public void setTempoSer(){
-        Processo temp_p;
+        //Processo temp_p;
         for(int i = 0; i < quadros.size(); i++){
-            temp_p = quadros.remove(i);
-        }
+            if(quadros.elementAt(i) != null){
+                if(quadros.elementAt(i).serTotal < quadros.elementAt(i).tProc)
+                quadros.elementAt(i).serTotal++;
+            }
+       }
     }
     
     public void alocarP(Processo p){
         p.estado = Estados.EXECUTANDO;
         int nBlocos = p.tam / 64;
         for(int i = 0; i < quadros.size(); i++){
+            if(quadros.elementAt(i) == null){
             if(nBlocos > 0){
                quadros.set(i, p);
                nBlocos--;
             }
-            this.tamanhoOcupado = this.tamanhoOcupado + p.tam;
+            }
         }
+        this.tamanhoOcupado = this.tamanhoOcupado + p.tam;
     }
     
 }
