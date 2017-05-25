@@ -12,10 +12,12 @@ public class Processo {
     public int nMdm;
     public int nCds;
     Estados estado;
+    public int serTotal;
     
     
     public Processo(){
         this.estado = Estados.NOVO;
+        this.serTotal = 0;
     }
     
     public void printProcesso(){

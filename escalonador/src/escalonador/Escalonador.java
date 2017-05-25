@@ -12,6 +12,7 @@ public class Escalonador{
     public static int cd = 2;
     public static int modem = 1;
     public static int cpu = 4;
+    public static int clock = 0;
     
     public static boolean recursosDisp(Processo p){
         if(Escalonador.cpu != 0){
@@ -38,12 +39,21 @@ public class Escalonador{
         return false;
     }
     
-    public static void fcFS(Queue <Processo> f, Memoria m){
+    public static void fcFS(Queue <Processo> f, Memoria m){     
+        
             if(!f.isEmpty()){
-            if(m.freeToProcess(f.element())){
-                m.alocarP(f.remove());
+                    if(m.freeToProcess(f.element())){
+                        System.out.println(f.element().nome + " " + "carregado para memória");
+                        m.alocarP(f.remove());
+                    }
+                    if(m.memoriaCheia()){
+                        m.swapOut();
+                    }
+                }
+
+            else if(m.temEstFinalizado()){
+                    m.rmvEstadoFinalizado();
             }
-        }
     }
     
     public static void feedBack(Queue <Processo> f, Queue <Processo> f1, Queue <Processo> f2, Queue <Processo> f3){
@@ -76,6 +86,7 @@ public class Escalonador{
            String[] lineArray = line.split(", ");
            p = createProcess(lineArray, p);
            fe.add(p);
+           p.printProcesso();
            id++;
        }
        
@@ -85,32 +96,39 @@ public class Escalonador{
        Queue <Processo> f2 = new LinkedList<Processo>();
        Queue <Processo> f3 = new LinkedList<Processo>();
        
-       int clock = 0;
        Memoria memoria = new Memoria();
        
-       Thread feedback = new Thread(() ->feedBack(ftr, f1, f2, f3));
-       Thread fcfs = new Thread(() ->fcFS(fu, memoria));
-       feedback.start();
-       
-       while (!fe.isEmpty() || !ftr.isEmpty() || !fu.isEmpty()){
-           if((fe.element().tempoC == clock) && recursosDisp(fe.element())){
-               if(fe.element().pri != 0)
-                   fu.add(fe.remove());
-               else
-                   ftr.add(fe.remove());
-           }
+       //Thread feedback = new Thread(() ->feedBack(fu, f1, f2, f3));
+       //Thread fcfs = new Thread(() ->fcFS(ftr, memoria));
+              
+       while (!fe.isEmpty() || memoria.prcssMemoria()){
+            
+            if(!fe.isEmpty()){
+              if((fe.element().tempoC == clock) && recursosDisp(fe.element())){
+                  if(fe.element().pri != 0) //prioridade não é 0
+                      fu.add(fe.remove());
+                  else
+                      ftr.add(fe.remove());
+              }
+            }
+           
            
            if(!ftr.isEmpty()){
-               fcfs.stop();
+             //feedback.start();
+             fcFS(ftr,memoria);
            }
            
            else if(ftr.isEmpty() && !fu.isEmpty()){
-               fcfs.start();
+               //feedback.start();
            }
+          
            
            clock++;
+           if(memoria.tamanhoOcupado > 0){
+               memoria.setTempoSer();
+           }
        }
        
-    }
+   }
     
 }
