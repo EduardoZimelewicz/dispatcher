@@ -17,17 +17,18 @@ public class Escalonador{
     public static boolean recursosDisp(Processo p){
         if(Escalonador.cpu != 0){
             Escalonador.cpu--;
+            p.utCpu = true;
             if(p.pri == 0){
                 return true;
             }
-            if(p.nImpr <= Escalonador.impressora && Escalonador.impressora != 0 && p.nImpr != 0){
-                Escalonador.impressora--;
-                if(p.nScnr <= Escalonador.scanner && Escalonador.scanner != 0 && p.nScnr != 0){
-                    Escalonador.scanner--;
-                    if(p.nCds <= Escalonador.cd && Escalonador.cd != 0 && p.nCds != 0){
-                        Escalonador.cd--;
-                        if(p.nMdm <= Escalonador.modem && Escalonador.modem != 0 && p.nMdm != 0){
-                            Escalonador.modem--;
+            if(p.nImpr <= Escalonador.impressora && Escalonador.impressora != 0){
+                Escalonador.impressora = Escalonador.impressora - p.nImpr;
+                if(p.nScnr <= Escalonador.scanner && Escalonador.scanner != 0){
+                    Escalonador.scanner = Escalonador.scanner - p.nScnr;
+                    if(p.nCds <= Escalonador.cd && Escalonador.cd != 0){
+                        Escalonador.cd = Escalonador.cd - p.nCds;
+                        if(p.nMdm <= Escalonador.modem && Escalonador.modem != 0){
+                            Escalonador.modem = Escalonador.modem - p.nMdm;
                             return true;
                         }
                     }
@@ -35,32 +36,77 @@ public class Escalonador{
             }
         }        
         Escalonador.cpu++;
-        Escalonador.impressora++;
-        Escalonador.scanner++;
-        Escalonador.cd++;
-        Escalonador.modem++;
+        Escalonador.impressora = Escalonador.impressora + p.nImpr;
+        Escalonador.scanner = Escalonador.scanner + p.nScnr;
+        Escalonador.cd = Escalonador.cd + p.nCds;
+        Escalonador.modem = Escalonador.modem + p.nMdm;
         return false;
+    }
+    
+    public static void atualizaRecrs(Processo p){
+        Escalonador.impressora = Escalonador.impressora + p.nImpr;
+        Escalonador.scanner = Escalonador.scanner + p.nScnr;
+        Escalonador.cd = Escalonador.cd + p.nCds;
+        Escalonador.modem = Escalonador.modem + p.nMdm;
     }
     
     public static void fcFS(Queue <Processo> f, Memoria m){     
         if(!f.isEmpty()){
-                    if(m.freeToProcess(f.element())){
-                        System.out.println(f.element().nome + " " + "carregado para memória");
-                        m.alocarP(f.remove());
-                    }
-                    if(m.memoriaCheia()){
-                        m.swapOut();
-                    }
-                }
-
-        if(m.temEstFinalizado()){
-            m.rmvEstadoFinalizado();
+            if(m.freeToProcess(f.element())){
+                System.out.println(f.element().nome + " " + "carregado para memória");
+                m.alocarP(f.remove());
+            }
+            
+            if(m.memoriaCheia()){
+                m.swapOut();
+            }
         }
     }
     
-    public static void feedBack(Queue <Processo> f, Queue <Processo> f1, Queue <Processo> f2, Queue <Processo> f3){
+    public static void feedBack(Queue <Processo> f, Queue <Processo> f1, Queue <Processo> f2, Queue <Processo> f3, Memoria m){
         if(!f.isEmpty()){
+            if(m.freeToProcess(f.element()) && !m.prcssEstaNaMe(f.element())){
+                System.out.println(f.element().nome + " " + "carregado para memória");
+                m.alocarP(f.remove());
+            }
             
+            if(clock%2 == 0){
+                f1.addAll(m.retiraDaCPU());
+                Escalonador.cpu++;
+            }
+        }
+        
+        if(f.isEmpty() && !f1.isEmpty()){
+            if(recursosDisp(f1.element()) && m.prcssEstaNaMe(f1.element())){
+                f1.remove();
+            }
+            
+            if(clock%2 == 0){
+                f2.addAll(m.retiraDaCPU());
+                Escalonador.cpu++;
+            }
+        }
+        
+        else if(f1.isEmpty() && !f2.isEmpty()){
+            if(recursosDisp(f2.element()) && m.prcssEstaNaMe(f2.element())){
+                f2.remove();
+            }
+            
+            if(clock%2 == 0){
+                f3.addAll(m.retiraDaCPU());
+                Escalonador.cpu++;
+            }
+        }
+        
+        else if(f1.isEmpty() && f2.isEmpty() && !f3.isEmpty()){
+            if(recursosDisp(f3.element()) && m.prcssEstaNaMe(f3.element())){
+                f3.remove();
+            }
+            
+            if(clock%2 == 0){
+                    f1.addAll(m.retiraDaCPU());
+                    Escalonador.cpu++;
+            }
         }
     }
     
@@ -77,7 +123,7 @@ public class Escalonador{
     }
 
     public static void main(String[] args) throws FileNotFoundException{
-       File file = new File("/home/eduardo/NetBeansProjects/escalonador/src/escalonador/processos.txt");
+       File file = new File("/home/eduardo/NetBeansProjects/escalonador/src/escalonador/processos2.txt");
        Scanner scanner = new Scanner(file);
        Queue <Processo> fe = new LinkedList<Processo>();
        int id = 1;
@@ -106,28 +152,31 @@ public class Escalonador{
        while (!fe.isEmpty() || !fu.isEmpty() || !ftr.isEmpty() || memoria.temPrcssMemoria()){
             
             if(!fe.isEmpty()){
-              if((fe.element().tempoC == clock) && recursosDisp(fe.element())){
-                  if(fe.element().pri != 0) //prioridade não é 0
+              if((fe.element().tempoC <= clock) && recursosDisp(fe.element())){
+                  if(fe.element().pri != 0) 
                       fu.add(fe.remove());
                   else
                       ftr.add(fe.remove());
               }
             }
            
+            if(memoria.temEstFinalizado()){
+                memoria.rmvEstadoFinalizado();
+                Escalonador.cpu++;
+            }
            
-           if(!ftr.isEmpty() || memoria.temPrcssMemoria()){
-             //feedback.start();
+           if(!ftr.isEmpty() || memoria.temPrcssFTRMemoria()){
              fcFS(ftr,memoria);
            }
            
-           else if(ftr.isEmpty() && !fu.isEmpty()){
-               //feedback.start();
+           else if((ftr.isEmpty() && !fu.isEmpty()) || memoria.temPrcssFUMemoria()){
+               feedBack(fu, f1, f2, f3, memoria);
            }
-          
            
            if(memoria.tamanhoOcupado > 0){
                memoria.setTempoSer();
            }
+           
            clock++;
        }
        

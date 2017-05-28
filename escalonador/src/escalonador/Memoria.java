@@ -1,5 +1,7 @@
 package escalonador;
 
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Vector;
 
 public class Memoria {
@@ -18,6 +20,32 @@ public class Memoria {
         return false;
     }
     
+    public boolean temPrcssFTRMemoria(){
+        for(int i = 0; i < quadros.size(); i++)
+            if(quadros.elementAt(i) != null)
+                if(quadros.elementAt(i).pri == 0)
+                return true;
+        return false;
+    }
+    
+    public boolean temPrcssFUMemoria(){
+        for(int i = 0; i < quadros.size(); i++)
+            if(quadros.elementAt(i) != null)
+                if(quadros.elementAt(i).pri != 0)
+                return true;
+        return false;
+    }
+    
+    public boolean prcssEstaNaMe(Processo p){
+        for(int i = 0; i < quadros.size(); i++){
+            if(quadros.elementAt(i) != null){
+                if(quadros.elementAt(i).nome.equals(p.nome))
+                    return true;
+            }
+        }
+        return false;
+    }
+    
     public boolean freeToProcess(Processo p){
         if (!memoriaCheia() && (p.tam <= this.tamanho - this.tamanhoOcupado))
             return true;
@@ -30,8 +58,35 @@ public class Memoria {
         return false;
     }
     
+    public Queue retiraDaCPU(){
+        Queue <Processo> f = new LinkedList<Processo>();
+        for(int i = 0; i < quadros.size(); i++){
+            if(quadros.elementAt(i) != null){
+                if(quadros.elementAt(i).pri != 0){
+                    if(!f.contains(quadros.elementAt(i))){
+                        f.add(quadros.elementAt(i));
+                    }
+                    
+                    quadros.elementAt(i).utCpu = false;
+                }
+            }
+        }
+        return f;
+    }
+        
+    
     public void swapOut(){
         
+    }
+    
+    public boolean temEstBloqueado(){
+        for(int i = 0; i < quadros.size(); i++){
+            if(quadros.elementAt(i) != null){
+                if(quadros.elementAt(i).estado == Estados.BLOQUEADO)
+                    return true;
+            }
+        }
+        return false;
     }
     
     public boolean temEstFinalizado(){
@@ -45,23 +100,34 @@ public class Memoria {
     }
     
     public void rmvEstadoFinalizado(){
+        int tam = 0;
+        Vector <Processo> termtd = new Vector <Processo>();
         for(int i = 0; i < quadros.size(); i++){
             if(quadros.elementAt(i) != null){
                 if(quadros.elementAt(i).tProc == quadros.elementAt(i).serTotal){
                     quadros.elementAt(i).estado = Estados.FINALIZADO;
-                    System.out.println(quadros.elementAt(i).nome + " " + "finalizado no tempo " + Escalonador.clock);
-                    quadros.remove(i);
+                    quadros.elementAt(i).utCpu = false;
+                    
+                    if(!termtd.contains(quadros.elementAt(i))){
+                        System.out.println(quadros.elementAt(i).nome + " " + "finalizado no tempo " + Escalonador.clock);
+                        this.tamanhoOcupado = this.tamanhoOcupado - quadros.elementAt(i).tam;
+                        termtd.add(quadros.elementAt(i));
+                        Escalonador.atualizaRecrs(quadros.elementAt(i));
                     }
+                    
+                    quadros.set(i, null);
+                }
             }
         }
     }
     
     public void setTempoSer(){
-        //Processo temp_p;
         for(int i = 0; i < quadros.size(); i++){
             if(quadros.elementAt(i) != null){
-                if(quadros.elementAt(i).serTotal < quadros.elementAt(i).tProc)
-                quadros.elementAt(i).serTotal++;
+                if(quadros.elementAt(i).serTotal < quadros.elementAt(i).tProc){
+                    if(quadros.elementAt(i).utCpu)
+                        quadros.elementAt(i).serTotal++;
+                }
             }
        }
     }

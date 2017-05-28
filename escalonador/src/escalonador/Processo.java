@@ -13,11 +13,13 @@ public class Processo {
     public int nCds;
     Estados estado;
     public int serTotal;
+    public boolean utCpu;
     
     
     public Processo(){
         this.estado = Estados.NOVO;
         this.serTotal = 0;
+        this.utCpu = false;
     }
     
     public void printProcesso(){
