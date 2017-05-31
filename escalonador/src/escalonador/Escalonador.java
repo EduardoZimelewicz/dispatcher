@@ -123,7 +123,7 @@ public class Escalonador{
     }
 
     public static void main(String[] args) throws FileNotFoundException{
-       File file = new File("/home/eduardo/NetBeansProjects/escalonador/src/escalonador/processos2.txt");
+       File file = new File("src/escalonador/processos2.txt");
        Scanner scanner = new Scanner(file);
        Queue <Processo> fe = new LinkedList<Processo>();
        int id = 1;
