@@ -7,6 +7,7 @@ import java.util.Queue;
 
 public class Escalonador{
     
+    public static int DELAY = 500; //valor em milesegundos
     public static int impressora = 2;
     public static int scanner = 1;
     public static int cd = 2;
@@ -150,34 +151,40 @@ public class Escalonador{
        //Thread fcfs = new Thread(() ->fcFS(ftr, memoria));
               
        while (!fe.isEmpty() || !fu.isEmpty() || !ftr.isEmpty() || memoria.temPrcssMemoria()){
-            
-            if(!fe.isEmpty()){
-              if((fe.element().tempoC <= clock) && recursosDisp(fe.element())){
-                  if(fe.element().pri != 0) 
-                      fu.add(fe.remove());
-                  else
-                      ftr.add(fe.remove());
-              }
-            }
-           
-            if(memoria.temEstFinalizado()){
-                memoria.rmvEstadoFinalizado();
-                Escalonador.cpu++;
-            }
-           
-           if(!ftr.isEmpty() || memoria.temPrcssFTRMemoria()){
-             fcFS(ftr,memoria);
+           try {
+                Thread.sleep(DELAY);
+
+                 if(!fe.isEmpty()){
+                   if((fe.element().tempoC <= clock) && recursosDisp(fe.element())){
+                       if(fe.element().pri != 0) 
+                           fu.add(fe.remove());
+                       else
+                           ftr.add(fe.remove());
+                   }
+                 }
+
+                 if(memoria.temEstFinalizado()){
+                     memoria.rmvEstadoFinalizado();
+                     Escalonador.cpu++;
+                 }
+
+                if(!ftr.isEmpty() || memoria.temPrcssFTRMemoria()){
+                  fcFS(ftr,memoria);
+                }
+
+                else if((ftr.isEmpty() && !fu.isEmpty()) || memoria.temPrcssFUMemoria()){
+                    feedBack(fu, f1, f2, f3, memoria);
+                }
+
+                if(memoria.tamanhoOcupado > 0){
+                    memoria.setTempoSer();
+                }
+
+                clock++;
            }
-           
-           else if((ftr.isEmpty() && !fu.isEmpty()) || memoria.temPrcssFUMemoria()){
-               feedBack(fu, f1, f2, f3, memoria);
+           catch (Exception e) {
+               System.out.println(e.getMessage());
            }
-           
-           if(memoria.tamanhoOcupado > 0){
-               memoria.setTempoSer();
-           }
-           
-           clock++;
        }
        
    }
