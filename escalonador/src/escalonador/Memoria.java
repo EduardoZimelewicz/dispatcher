@@ -75,33 +75,8 @@ public class Memoria {
     }
         
     
-    public void swapOut(Processo p, Memoria m){
-        Processo temp_p = new Processo();
-        for(int i = 0; i < m.quadros.size(); i++){
-            if(m.quadros.elementAt(i) != null){
-                if(m.quadros.elementAt(i).pri != 0){
-                    if(m.quadros.elementAt(i).tam >= p.tam){
-                        temp_p = m.quadros.elementAt(i);
-                        alocarP(temp_p);
-                        
-                        if(temp_p.estado == Estados.BLOQUEADO){
-                            temp_p.estado = Estados.BLOQUEADOSUSPENSO;
-                        }
-                        
-                        else {
-                            temp_p.estado = Estados.PRONTOSUSPENSO;
-                        }
-                        
-                        for(int k = i; k < quadros.size(); k++){
-                            if(m.quadros.elementAt(k).equals(temp_p)){
-                                m.quadros.set(i, null);
-                            }
-                        }
-                    }
-                }
-            }
-            break;
-        }
+    public void swapOut(){
+        
     }
     
     public boolean temEstBloqueado(){
@@ -158,18 +133,17 @@ public class Memoria {
     }
     
     public void alocarP(Processo p){
-        if(!prcssEstaNaMe(p)){
-            p.estado = Estados.EXECUTANDO;
-            int nBlocos = p.tam / 64;
-            for(int i = 0; i < quadros.size(); i++){
-                if(quadros.elementAt(i) == null){
-                    if(nBlocos > 0){
-                       quadros.set(i, p);
-                       nBlocos--;
-                    }
-                }
+        p.estado = Estados.EXECUTANDO;
+        int nBlocos = p.tam / 64;
+        for(int i = 0; i < quadros.size(); i++){
+            if(quadros.elementAt(i) == null){
+            if(nBlocos > 0){
+               quadros.set(i, p);
+               nBlocos--;
             }
-            this.tamanhoOcupado = this.tamanhoOcupado + p.tam;
+            }
         }
+        this.tamanhoOcupado = this.tamanhoOcupado + p.tam;
     }
+    
 }
