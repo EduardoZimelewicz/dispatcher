@@ -7,7 +7,6 @@ import java.util.Queue;
 
 public class Escalonador{
     
-    public static int DELAY = 500; //valor em milesegundos
     public static int impressora = 2;
     public static int scanner = 1;
     public static int cd = 2;
@@ -51,7 +50,7 @@ public class Escalonador{
         Escalonador.modem = Escalonador.modem + p.nMdm;
     }
     
-    public static void fcFS(Queue <Processo> f, Memoria m){     
+    public static void fcFS(Queue <Processo> f, Memoria m, Memoria m2){     
         if(!f.isEmpty()){
             if(m.freeToProcess(f.element())){
                 System.out.println(f.element().nome + " " + "carregado para memória");
@@ -59,7 +58,11 @@ public class Escalonador{
             }
             
             if(m.memoriaCheia()){
-                m.swapOut();
+                m2.swapOut(f.element(), m);
+                if(m.freeToProcess(f.element())){
+                    System.out.println(f.element().nome + " " + "carregado para memória");
+                    m.alocarP(f.remove());
+                }
             }
         }
     }
@@ -124,7 +127,7 @@ public class Escalonador{
     }
 
     public static void main(String[] args) throws FileNotFoundException{
-       File file = new File("src/escalonador/processos2.txt");
+       File file = new File("/home/eduardo/NetBeansProjects/escalonador/src/escalonador/processos2.txt");
        Scanner scanner = new Scanner(file);
        Queue <Processo> fe = new LinkedList<Processo>();
        int id = 1;
@@ -146,45 +149,40 @@ public class Escalonador{
        Queue <Processo> f3 = new LinkedList<Processo>();
        
        Memoria memoria = new Memoria();
+       Memoria memSec = new Memoria();
        
        //Thread feedback = new Thread(() ->feedBack(fu, f1, f2, f3));
        //Thread fcfs = new Thread(() ->fcFS(ftr, memoria));
               
        while (!fe.isEmpty() || !fu.isEmpty() || !ftr.isEmpty() || memoria.temPrcssMemoria()){
-           try {
-                Thread.sleep(DELAY);
-
-                 if(!fe.isEmpty()){
-                   if((fe.element().tempoC <= clock) && recursosDisp(fe.element())){
-                       if(fe.element().pri != 0) 
-                           fu.add(fe.remove());
-                       else
-                           ftr.add(fe.remove());
-                   }
-                 }
-
-                 if(memoria.temEstFinalizado()){
-                     memoria.rmvEstadoFinalizado();
-                     Escalonador.cpu++;
-                 }
-
-                if(!ftr.isEmpty() || memoria.temPrcssFTRMemoria()){
-                  fcFS(ftr,memoria);
-                }
-
-                else if((ftr.isEmpty() && !fu.isEmpty()) || memoria.temPrcssFUMemoria()){
-                    feedBack(fu, f1, f2, f3, memoria);
-                }
-
-                if(memoria.tamanhoOcupado > 0){
-                    memoria.setTempoSer();
-                }
-
-                clock++;
+            
+            if(!fe.isEmpty()){
+              if((fe.element().tempoC <= clock) && recursosDisp(fe.element())){
+                  if(fe.element().pri != 0) 
+                      fu.add(fe.remove());
+                  else
+                      ftr.add(fe.remove());
+              }
+            }
+           
+            if(memoria.temEstFinalizado()){
+                memoria.rmvEstadoFinalizado();
+                Escalonador.cpu++;
+            }
+           
+           if(!ftr.isEmpty() || memoria.temPrcssFTRMemoria()){
+             fcFS(ftr,memoria, memSec);
            }
-           catch (Exception e) {
-               System.out.println(e.getMessage());
+           
+           else if((ftr.isEmpty() && !fu.isEmpty()) || memoria.temPrcssFUMemoria()){
+               feedBack(fu, f1, f2, f3, memoria);
            }
+           
+           if(memoria.tamanhoOcupado > 0){
+               memoria.setTempoSer();
+           }
+           
+           clock++;
        }
        
    }
