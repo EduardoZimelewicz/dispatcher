@@ -92,6 +92,7 @@ public class Memoria {
         }
     }
     
+    //Tira o processo da memória definida como argumento e coloca na memória que chama a função
     public void swapOut(Processo p, Memoria m){
         Processo temp_p = new Processo();
         for(int i = 0; i < m.quadros.size(); i++){
@@ -99,8 +100,7 @@ public class Memoria {
                 if(m.quadros.elementAt(i).pri != 0){
                     if(m.quadros.elementAt(i).tam >= p.tam){
                         temp_p = m.quadros.elementAt(i);
-                        alocarP(temp_p);
-                        
+                        System.out.println(temp_p.nome + " retirado da memória");
                         if(temp_p.estado == Estados.BLOQUEADO){
                             temp_p.estado = Estados.BLOQUEADOSUSPENSO;
                         }
@@ -109,15 +109,46 @@ public class Memoria {
                             temp_p.estado = Estados.PRONTOSUSPENSO;
                         }
                         
+                        alocarP(temp_p);
+                        
                         for(int k = i; k < quadros.size(); k++){
                             if(m.quadros.elementAt(k).equals(temp_p)){
                                 m.quadros.set(i, null);
                             }
                         }
+                        break;
                     }
                 }
             }
-            break;
+        }
+    }
+    
+    //Devolve processo para a memória especificada como argumento
+    public void swapIn(Memoria m){
+        Processo temp_p = new Processo();
+        for(int i = 0; i < quadros.size(); i++){
+            if(quadros.elementAt(i) != null){
+                if(freeToProcess(quadros.elementAt(i))){
+                   temp_p = quadros.elementAt(i);
+                   System.out.println(temp_p.nome + " colocado de volta na memória");
+                   if(temp_p.estado == Estados.BLOQUEADOSUSPENSO){
+                        temp_p.estado = Estados.BLOQUEADO;
+                    }
+                        
+                    else{
+                        temp_p.estado = Estados.PRONTO;
+                    }
+                   
+                   m.alocarP(temp_p);
+                }
+                
+                for(int k = i; k < quadros.size(); k++){
+                    if(quadros.elementAt(i).nome.equals(temp_p.nome)){
+                        quadros.set(i, null);
+                    }
+                }
+                break;
+            }
         }
     }
     

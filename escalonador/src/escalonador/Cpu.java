@@ -5,9 +5,9 @@ public class Cpu {
     public static final int OCIOSO = 0;
     public static final int EXECUTANDO = 1;
     
-    private int id;
-    private Processo processo;
-    private int estado;
+    public int id;
+    public Processo processo;
+    public int estado;
     
     public Cpu (int id) {
         this.id = id;

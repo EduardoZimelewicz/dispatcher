@@ -34,7 +34,7 @@ public class Escalonador{
     public static boolean buscaCpuOciosa(Processo p){
         for(int i = 0; i < uDeProcss.size(); i++){
             if(uDeProcss.elementAt(i) != null){
-                if(uDeProcss.elementAt(i).getEstado() == Cpu.OCIOSO){
+                if(uDeProcss.elementAt(i).estado == 0){
                     uDeProcss.elementAt(i).excProcss(p);
                     return true;
                 }
@@ -48,6 +48,7 @@ public class Escalonador{
             if(uDeProcss.elementAt(i) != null && uDeProcss.elementAt(i).getProcssCur() != null){
                 if(uDeProcss.elementAt(i).getProcssCur().nome.equals(p.nome)){
                     uDeProcss.elementAt(i).setProcssCur();
+                    uDeProcss.elementAt(i).estado = 0;
                     break;
                 }
             }
@@ -61,27 +62,26 @@ public class Escalonador{
             if(p.pri == 0){
                 return true;
             }
-            if(p.nImpr <= Escalonador.impressora && Escalonador.impressora != 0){
-                Escalonador.impressora = Escalonador.impressora - p.nImpr;
-                if(p.nScnr <= Escalonador.scanner && Escalonador.scanner != 0){
-                    Escalonador.scanner = Escalonador.scanner - p.nScnr;
-                    if(p.nCds <= Escalonador.cd && Escalonador.cd != 0){
-                        Escalonador.cd = Escalonador.cd - p.nCds;
-                        if(p.nMdm <= Escalonador.modem && Escalonador.modem != 0){
-                            Escalonador.modem = Escalonador.modem - p.nMdm;
+            
+            if((p.nImpr <= Escalonador.impressora && Escalonador.impressora != 0) || p.nImpr == 0){
+                if((p.nScnr <= Escalonador.scanner && Escalonador.scanner != 0) || p.nScnr == 0){
+                    if((p.nCds <= Escalonador.cd && Escalonador.cd != 0) || p.nCds == 0){
+                        if((p.nMdm <= Escalonador.modem && Escalonador.modem != 0) || p.nMdm == 0){
+                            entregaRecrs(p);
                             return true;
                         }
                     }
                 }
             }
-        }        
-        Escalonador.cpu++;
-        buscaCpuComPrcss(p);
-        Escalonador.impressora = Escalonador.impressora + p.nImpr;
-        Escalonador.scanner = Escalonador.scanner + p.nScnr;
-        Escalonador.cd = Escalonador.cd + p.nCds;
-        Escalonador.modem = Escalonador.modem + p.nMdm;
+        }
         return false;
+    }
+    
+    public static void entregaRecrs(Processo p){
+        Escalonador.impressora = Escalonador.impressora - p.nImpr;
+        Escalonador.scanner = Escalonador.scanner - p.nScnr;
+        Escalonador.cd = Escalonador.cd - p.nCds;
+        Escalonador.modem = Escalonador.modem - p.nMdm;
     }
     
     public static void atualizaRecrs(Processo p){
@@ -108,7 +108,7 @@ public class Escalonador{
         }
     }
     
-    public static void feedBack(Queue <Processo> f, Queue <Processo> f1, Queue <Processo> f2, Queue <Processo> f3, Memoria m){
+    public static void feedBack(Queue <Processo> f, Queue <Processo> f1, Queue <Processo> f2, Queue <Processo> f3, Memoria m, Memoria m2){
         if(!f.isEmpty()){
             if(m.freeToProcess(f.element()) && !m.prcssEstaNaMe(f.element())){
                 System.out.println(f.element().nome + " " + "carregado para memória");
@@ -124,7 +124,13 @@ public class Escalonador{
         if(f.isEmpty() && !f1.isEmpty()){
             if(m.prcssEstaNaMe(f1.element())){
                 m.colocaNaCPU(f1.element());
+                Escalonador.cpu--;
                 f1.remove();
+            }
+            
+            if(!f1.isEmpty() && f1.element() != null){
+                if(f1.element().estado == Estados.FINALIZADO)
+                    f1.remove();
             }
             
             if(clock%2 == 0){
@@ -136,7 +142,13 @@ public class Escalonador{
         else if(f1.isEmpty() && !f2.isEmpty()){
             if(m.prcssEstaNaMe(f2.element())){
                 m.colocaNaCPU(f2.element());
+                Escalonador.cpu--;
                 f2.remove();
+            }
+            
+            if(!f2.isEmpty() && f2.element() != null) {
+                if(f2.element().estado == Estados.FINALIZADO)
+                    f2.remove();
             }
             
             if(clock%2 == 0){
@@ -145,12 +157,18 @@ public class Escalonador{
             }
         }
         
-        else if(f1.isEmpty() && f2.isEmpty()){
-            if(!f3.isEmpty()){
+        else if(f1.isEmpty() && f2.isEmpty() && !f3.isEmpty()){
+            
                 if(m.prcssEstaNaMe(f3.element())){
                     m.colocaNaCPU(f3.element());
+                    Escalonador.cpu--;
                     f3.remove();
                 }
+            
+            
+            if(!f3.isEmpty() && f3.element() != null){
+                if(f3.element().estado == Estados.FINALIZADO)
+                    f3.remove();
             }
             
             if(clock%2 == 0){
@@ -158,6 +176,7 @@ public class Escalonador{
                     Escalonador.cpu++;
             }
         }
+        m2.swapIn(m);
     }
     
     public static Processo createProcess(String [] lineArray, Processo p){
@@ -173,7 +192,7 @@ public class Escalonador{
     }
 
     public static void main(String[] args) throws FileNotFoundException{
-       File file = new File("src/escalonador/processos2.txt");
+       File file = new File("src/escalonador/processos3.txt");
        Scanner scanner = new Scanner(file);
        Queue <Processo> fe = new LinkedList<Processo>();
        int id = 1;
@@ -205,7 +224,7 @@ public class Escalonador{
               
        while (!fe.isEmpty() || !fu.isEmpty() || !ftr.isEmpty() || memoria.temPrcssMemoria()){
            try {
-                Thread.sleep(DELAY);
+                //Thread.sleep(DELAY);
 
                  if(!fe.isEmpty()){
                    if((fe.element().tempoC <= clock) && recursosDisp(fe.element())){
@@ -221,17 +240,26 @@ public class Escalonador{
                      memoria.rmvEstadoFinalizado();
                      Escalonador.cpu++;
                  }
+                 
+                 if(memSec.temEstFinalizado()){
+                     memSec.rmvEstadoFinalizado();
+                     Escalonador.cpu++;
+                 }
 
                 if(!ftr.isEmpty() || memoria.temPrcssFTRMemoria()){
                   fcFS(ftr,memoria, memSec);
                 }
 
                 else if((ftr.isEmpty() && !fu.isEmpty()) || memoria.temPrcssFUMemoria()){
-                    feedBack(fu, f1, f2, f3, memoria);
+                    feedBack(fu, f1, f2, f3, memoria, memSec);
                 }
 
                 if(memoria.tamanhoOcupado > 0){
                     memoria.setTempoSer();
+                }
+                
+                if(memSec.tamanhoOcupado > 0){
+                    memSec.setTempoSer();
                 }
                 
                 clock++;
