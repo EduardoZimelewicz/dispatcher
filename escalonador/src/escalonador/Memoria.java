@@ -1,5 +1,7 @@
 package escalonador;
 
+import static escalonador.Escalonador.buscaCpuComPrcss;
+import static escalonador.Escalonador.buscaCpuOciosa;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Vector;
@@ -65,6 +67,7 @@ public class Memoria {
                 if(quadros.elementAt(i).pri != 0){
                     if(!f.contains(quadros.elementAt(i))){
                         f.add(quadros.elementAt(i));
+                        buscaCpuComPrcss(quadros.elementAt(i));
                     }
                     
                     quadros.elementAt(i).utCpu = false;
@@ -74,6 +77,20 @@ public class Memoria {
         return f;
     }
         
+    public void colocaNaCPU(Processo p){
+        Queue <Processo> f = new LinkedList<Processo>();
+        for(int i = 0; i < quadros.size(); i++){
+            if(quadros.elementAt(i) != null){
+                if(quadros.elementAt(i).nome.equals(p.nome)){
+                    if(!f.contains(quadros.elementAt(i))){
+                        f.add(quadros.elementAt(i));
+                        buscaCpuOciosa(quadros.elementAt(i));
+                    }
+                    quadros.elementAt(i).utCpu = true;
+                }
+            }
+        }
+    }
     
     public void swapOut(Processo p, Memoria m){
         Processo temp_p = new Processo();
@@ -134,6 +151,7 @@ public class Memoria {
                     quadros.elementAt(i).utCpu = false;
                     
                     if(!termtd.contains(quadros.elementAt(i))){
+                        buscaCpuComPrcss(quadros.elementAt(i));
                         System.out.println(quadros.elementAt(i).nome + " " + "finalizado no tempo " + Escalonador.clock);
                         this.tamanhoOcupado = this.tamanhoOcupado - quadros.elementAt(i).tam;
                         termtd.add(quadros.elementAt(i));

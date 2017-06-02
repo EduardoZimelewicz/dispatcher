@@ -29,6 +29,10 @@ public class Cpu {
         return this.processo;
     }
     
+    public void setProcssCur(){
+        this.processo = null;
+    }
+    
     //Coloca um processo para execultar se a cpu estiver ociosa
     public void excProcss(Processo procss) {
         if (this.estado == Cpu.OCIOSO) {
