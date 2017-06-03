@@ -5,9 +5,20 @@ import java.util.Scanner;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Vector;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import javax.swing.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.border.Border;
 
-public class Escalonador{
+public class Escalonador extends JFrame implements Runnable{
     
+//<editor-fold defaultstate="collapsed" desc="variaveis do escalonador">
     public static int DELAY = 500; //valor em milesegundos
     public static int impressora = 2;
     public static int scanner = 1;
@@ -17,6 +28,46 @@ public class Escalonador{
     public static int clock = 0;
     public static Vector <Cpu> uDeProcss = new Vector<Cpu>();
     
+    public static Queue <Processo> fe = new LinkedList<Processo>();
+    public static Queue <Processo> ftr = new LinkedList<Processo>();
+    public static Queue <Processo> fu = new LinkedList<Processo>();
+    public static Queue <Processo> f1 = new LinkedList<Processo>();
+    public static Queue <Processo> f2 = new LinkedList<Processo>();
+    public static Queue <Processo> f3 = new LinkedList<Processo>();
+    
+    public static Memoria memoria = new Memoria();
+    public static Memoria memSec = new Memoria();
+//</editor-fold>
+    
+//<editor-fold defaultstate="collapsed" desc="variaveis da interface">
+    public static final int JANELA_LARGURA = 800;
+    public static final int JANELA_ALTURA = 600;
+    
+    //layout
+    private GridBagLayout layout;
+    private GridBagConstraints constraints;
+    
+    //componentes
+    private JPanel panelPrincipal;
+    private PanelFila panelF1;
+    private JScrollPane spFilas;
+    private JButton btAbrir;
+    private JButton btSimular;
+    private JLabel lCpus;
+    private JLabel lFilasDeProntos;
+    private JLabel lMemoria;
+    private JLabel lProcessos;
+    private JLabel lRecursos;
+    private JPanel pBotoes;
+    private JPanel pCpus;
+    private JPanel pMenoria;
+    private JPanel pRecursos;
+    private JScrollPane spTabela;
+    private JScrollPane spTimeline;
+    private JTable tProcesso;
+//</editor-fold>
+    
+//<editor-fold defaultstate="collapsed" desc="Escalonador">
     public static void inicializaVectorCpu(){
         for(int i = 0; i < uDeProcss.size(); i++){
             Cpu cpu = new Cpu(i);
@@ -91,7 +142,7 @@ public class Escalonador{
         Escalonador.modem = Escalonador.modem + p.nMdm;
     }
     
-    public static void fcFS(Queue <Processo> f, Memoria m, Memoria m2){     
+    public static void fcFS(Queue <Processo> f, Memoria m, Memoria m2){
         if(!f.isEmpty()){
             if(m.freeToProcess(f.element())){
                 System.out.println(f.element().nome + " " + "carregado para memória");
@@ -159,11 +210,11 @@ public class Escalonador{
         
         else if(f1.isEmpty() && f2.isEmpty() && !f3.isEmpty()){
             
-                if(m.prcssEstaNaMe(f3.element())){
-                    m.colocaNaCPU(f3.element());
-                    Escalonador.cpu--;
-                    f3.remove();
-                }
+            if(m.prcssEstaNaMe(f3.element())){
+                m.colocaNaCPU(f3.element());
+                Escalonador.cpu--;
+                f3.remove();
+            }
             
             
             if(!f3.isEmpty() && f3.element() != null){
@@ -172,8 +223,8 @@ public class Escalonador{
             }
             
             if(clock%2 == 0){
-                    f1.addAll(m.retiraDaCPU());
-                    Escalonador.cpu++;
+                f1.addAll(m.retiraDaCPU());
+                Escalonador.cpu++;
             }
         }
         m2.swapIn(m);
@@ -190,11 +241,78 @@ public class Escalonador{
         p.nCds = Integer.parseInt(lineArray[7]);
         return p;
     }
-
+//</editor-fold>
+//<editor-fold defaultstate="collapsed" desc="Metodos da interface">
+    
+    public Escalonador() {
+        
+        setSize(JANELA_LARGURA, JANELA_ALTURA);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setResizable(false);
+        
+        layout = new GridBagLayout();
+        constraints = new GridBagConstraints();
+        setLayout(layout);
+        
+        initComponentes();
+        
+        Thread t = new Thread(this);
+        t.start();
+        
+    }
+    
+    private void initComponentes() {
+        
+        Border borda = BorderFactory.createEmptyBorder(20, 20, 20, 20);
+        
+        
+        //filas de pronto
+        panelF1 = new PanelFila();
+        spFilas = new JScrollPane(panelF1);
+        spFilas.setHorizontalScrollBarPolicy(ScrollPaneLayout.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        spFilas.setVerticalScrollBarPolicy(ScrollPaneLayout.VERTICAL_SCROLLBAR_NEVER);
+        spFilas.setBorder(borda);
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.weighty = 500;
+        constraints.weightx = 1;
+        addComponent(spFilas, 0, 0, 1, 1);
+        
+        //Cpus
+        pCpus = new JPanel();
+        pCpus.setBackground(Color.red);
+        pCpus.setBorder(borda);
+        pCpus.setMinimumSize(new Dimension(300, 100));
+        constraints.weightx = 1;
+        addComponent(pCpus, 0, 1, 1, 1);
+        
+        
+        //Timeline
+        spTimeline = new JScrollPane();
+        spTimeline.setBorder(borda);
+        spTimeline.setPreferredSize(new Dimension(100, 100));
+        spTimeline.setHorizontalScrollBarPolicy(ScrollPaneLayout.HORIZONTAL_SCROLLBAR_ALWAYS);
+        spTimeline.setVerticalScrollBarPolicy(ScrollPaneLayout.VERTICAL_SCROLLBAR_AS_NEEDED);
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.weighty = 0;
+        addComponent(spTimeline, 1, 0, 2, 1);
+    }
+    
+    //controlar restrincoes
+    private void addComponent(Component component,
+            int row, int column, int width, int height) {
+        constraints.gridx = column;
+        constraints.gridy = row;
+        constraints.gridwidth = width;
+        constraints.gridheight = height;
+        layout.setConstraints(component, constraints);
+        add(component);
+    }
+//</editor-fold>
+    
     public static void main(String[] args) throws FileNotFoundException{
        File file = new File("src/escalonador/processos3.txt");
        Scanner scanner = new Scanner(file);
-       Queue <Processo> fe = new LinkedList<Processo>();
+       
        int id = 1;
        while(scanner.hasNextLine()){
            Processo p = new Processo();
@@ -207,14 +325,12 @@ public class Escalonador{
            id++;
        }
        
-       Queue <Processo> ftr = new LinkedList<Processo>();
-       Queue <Processo> fu = new LinkedList<Processo>();
-       Queue <Processo> f1 = new LinkedList<Processo>();
-       Queue <Processo> f2 = new LinkedList<Processo>();
-       Queue <Processo> f3 = new LinkedList<Processo>();
+       new Escalonador().setVisible(true);
        
-       Memoria memoria = new Memoria();
-       Memoria memSec = new Memoria();
+   }
+
+    @Override
+    public void run() {
        
        uDeProcss.setSize(4);
        inicializaVectorCpu();
@@ -224,7 +340,7 @@ public class Escalonador{
               
        while (!fe.isEmpty() || !fu.isEmpty() || !ftr.isEmpty() || memoria.temPrcssMemoria()){
            try {
-                //Thread.sleep(DELAY);
+                Thread.sleep(DELAY);
 
                  if(!fe.isEmpty()){
                    if((fe.element().tempoC <= clock) && recursosDisp(fe.element())){
@@ -263,12 +379,18 @@ public class Escalonador{
                 }
                 
                 clock++;
+                
+                //interface
+                panelF1.tam++;
+                panelF1.redimencionar(50, 0);
+                //System.out.println(panelF1.getSize());
+                panelF1.repaint();
            }
            catch (Exception e) {
                System.out.println(e.getMessage());
            }
        }
-       
-   }
+        
+    }
     
 }
