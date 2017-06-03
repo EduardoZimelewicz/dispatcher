@@ -58,7 +58,7 @@ public class Escalonador extends JFrame implements Runnable{
     private JLabel lProcessos;
     private JLabel lRecursos;
     private JPanel pBotoes;
-    private JPanel pCpus;
+    private PanelCpus pCpus;
     private JPanel pMenoria;
     private JPanel pRecursos;
     private JScrollPane spTabela;
@@ -241,6 +241,7 @@ public class Escalonador extends JFrame implements Runnable{
         return p;
     }
 //</editor-fold>
+    
 //<editor-fold defaultstate="collapsed" desc="Metodos da interface">
     
     public Escalonador() {
@@ -277,8 +278,8 @@ public class Escalonador extends JFrame implements Runnable{
         addComponent(spFilas, 0, 0, 1, 1);
         
         //Cpus
-        pCpus = new JPanel();
-        pCpus.setBackground(Color.red);
+        pCpus = new PanelCpus();
+        pCpus.setBackground(Color.lightGray);
         pCpus.setBorder(borda);
         pCpus.setMinimumSize(new Dimension(300, 100));
         constraints.weightx = 1;
@@ -382,6 +383,7 @@ public class Escalonador extends JFrame implements Runnable{
                 //interface
                 //System.out.println(panelF1.getSize());
                panelF1.repaint();
+               pCpus.repaint();
            }
            catch (Exception e) {
                System.out.println(e.getMessage());
