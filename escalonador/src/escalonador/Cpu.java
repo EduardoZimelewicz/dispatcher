@@ -1,5 +1,7 @@
 package escalonador;
 
+import java.util.ArrayList;
+
 public class Cpu {
     //estados em que a cpu pode se encontrar
     public static final int OCIOSO = 0;
@@ -8,10 +10,14 @@ public class Cpu {
     public int id;
     public Processo processo;
     public int estado;
+    public ArrayList<Processo> historico;
+    public ArrayList<Integer> histTime;
     
     public Cpu (int id) {
         this.id = id;
         this.estado = Cpu.OCIOSO;
+        historico = new ArrayList<>();
+        histTime = new ArrayList<>();
     }
     
     //retorna o número da cpu
@@ -29,8 +35,14 @@ public class Cpu {
         return this.processo;
     }
     
+    //reseta a cpu
     public void setProcssCur(){
-        this.processo = null;
+        if (this.processo != null) {
+            this.historico.add(this.processo);
+            this.histTime.add(new Integer(Escalonador.clock));
+            this.processo = null;
+            this.estado = OCIOSO;
+        }
     }
     
     //Coloca um processo para execultar se a cpu estiver ociosa

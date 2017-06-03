@@ -14,6 +14,7 @@ import java.awt.GridBagLayout;
 import javax.swing.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
 
 public class Escalonador extends JFrame implements Runnable{
@@ -39,8 +40,8 @@ public class Escalonador extends JFrame implements Runnable{
 //</editor-fold>
     
 //<editor-fold defaultstate="collapsed" desc="variaveis da interface">
-    public static final int JANELA_LARGURA = 1000;
-    public static final int JANELA_ALTURA = 600;
+    public static final int JANELA_LARGURA = 1200;
+    public static final int JANELA_ALTURA = 720;
     public static int DELAY = 1000; //valor em milesegundos
     
     //layout
@@ -50,19 +51,9 @@ public class Escalonador extends JFrame implements Runnable{
     //componentes
     private PanelFila panelF1;
     private JScrollPane spFilas;
-    private JButton btAbrir;
-    private JButton btSimular;
-    private JLabel lCpus;
-    private JLabel lFilasDeProntos;
-    private JLabel lMemoria;
-    private JLabel lProcessos;
-    private JLabel lRecursos;
-    private JPanel pBotoes;
     private PanelCpus pCpus;
-    private JPanel pMenoria;
-    private JPanel pRecursos;
-    private JScrollPane spTabela;
     private JScrollPane spTimeline;
+    private Timeline timeline;
     private JTable tProcesso;
 //</editor-fold>
     
@@ -264,6 +255,7 @@ public class Escalonador extends JFrame implements Runnable{
     private void initComponentes() {
         
         Border borda = BorderFactory.createEmptyBorder(20, 20, 20, 20);
+        Border borda2 = BorderFactory.createBevelBorder(BevelBorder.RAISED);
         
         
         //filas de pronto
@@ -281,17 +273,19 @@ public class Escalonador extends JFrame implements Runnable{
         pCpus = new PanelCpus();
         pCpus.setBackground(Color.lightGray);
         pCpus.setBorder(borda);
-        pCpus.setMinimumSize(new Dimension(300, 100));
+        pCpus.setMinimumSize(new Dimension(300, 200));
         constraints.weightx = 1;
         addComponent(pCpus, 0, 1, 1, 1);
         
         
         //Timeline
-        spTimeline = new JScrollPane();
-        spTimeline.setBorder(borda);
-        spTimeline.setPreferredSize(new Dimension(100, 100));
+        timeline = new Timeline();
+        timeline.setPreferredSize(new Dimension(100, 400));
+        spTimeline = new JScrollPane(timeline);
+        spTimeline.setBorder(borda2);
+        spTimeline.setPreferredSize(new Dimension(100, 200));
         spTimeline.setHorizontalScrollBarPolicy(ScrollPaneLayout.HORIZONTAL_SCROLLBAR_ALWAYS);
-        spTimeline.setVerticalScrollBarPolicy(ScrollPaneLayout.VERTICAL_SCROLLBAR_AS_NEEDED);
+        spTimeline.setVerticalScrollBarPolicy(ScrollPaneLayout.VERTICAL_SCROLLBAR_ALWAYS);
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.weighty = 0;
         addComponent(spTimeline, 1, 0, 2, 1);
@@ -324,6 +318,8 @@ public class Escalonador extends JFrame implements Runnable{
            p.printProcesso();
            id++;
        }
+       uDeProcss.setSize(4);
+       inicializaVectorCpu();
        
        new Escalonador().setVisible(true);
        
@@ -331,9 +327,6 @@ public class Escalonador extends JFrame implements Runnable{
 
     @Override
     public void run() {
-       
-       uDeProcss.setSize(4);
-       inicializaVectorCpu();
        
        //Thread feedback = new Thread(() ->feedBack(fu, f1, f2, f3));
        //Thread fcfs = new Thread(() ->fcFS(ftr, memoria));
@@ -384,6 +377,7 @@ public class Escalonador extends JFrame implements Runnable{
                 //System.out.println(panelF1.getSize());
                panelF1.repaint();
                pCpus.repaint();
+               timeline.repaint();
            }
            catch (Exception e) {
                System.out.println(e.getMessage());
