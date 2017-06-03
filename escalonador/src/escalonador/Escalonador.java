@@ -19,7 +19,6 @@ import javax.swing.border.Border;
 public class Escalonador extends JFrame implements Runnable{
     
 //<editor-fold defaultstate="collapsed" desc="variaveis do escalonador">
-    public static int DELAY = 500; //valor em milesegundos
     public static int impressora = 2;
     public static int scanner = 1;
     public static int cd = 2;
@@ -40,15 +39,15 @@ public class Escalonador extends JFrame implements Runnable{
 //</editor-fold>
     
 //<editor-fold defaultstate="collapsed" desc="variaveis da interface">
-    public static final int JANELA_LARGURA = 800;
+    public static final int JANELA_LARGURA = 1000;
     public static final int JANELA_ALTURA = 600;
+    public static int DELAY = 1000; //valor em milesegundos
     
     //layout
     private GridBagLayout layout;
     private GridBagConstraints constraints;
     
     //componentes
-    private JPanel panelPrincipal;
     private PanelFila panelF1;
     private JScrollPane spFilas;
     private JButton btAbrir;
@@ -316,7 +315,7 @@ public class Escalonador extends JFrame implements Runnable{
        int id = 1;
        while(scanner.hasNextLine()){
            Processo p = new Processo();
-           p.nome = "processo" + " " + id;
+           p.nome = "P" + id;
            String line = scanner.nextLine();
            String[] lineArray = line.split(", ");
            p = createProcess(lineArray, p);
@@ -381,10 +380,8 @@ public class Escalonador extends JFrame implements Runnable{
                 clock++;
                 
                 //interface
-                panelF1.tam++;
-                panelF1.redimencionar(50, 0);
                 //System.out.println(panelF1.getSize());
-                panelF1.repaint();
+               panelF1.repaint();
            }
            catch (Exception e) {
                System.out.println(e.getMessage());
