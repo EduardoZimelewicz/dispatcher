@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
+import javax.swing.table.DefaultTableModel;
 
 public class Escalonador extends JFrame implements Runnable{
     
@@ -43,6 +44,7 @@ public class Escalonador extends JFrame implements Runnable{
     public static final int JANELA_LARGURA = 1200;
     public static final int JANELA_ALTURA = 720;
     public static int DELAY = 1000; //valor em milesegundos
+    private static  Object[][] rows;
     
     //layout
     private GridBagLayout layout;
@@ -55,6 +57,7 @@ public class Escalonador extends JFrame implements Runnable{
     private JScrollPane spTimeline;
     private Timeline timeline;
     private JTable tProcesso;
+    private JScrollPane spProcesso;
 //</editor-fold>
     
 //<editor-fold defaultstate="collapsed" desc="Escalonador">
@@ -258,24 +261,44 @@ public class Escalonador extends JFrame implements Runnable{
         Border borda2 = BorderFactory.createBevelBorder(BevelBorder.RAISED);
         
         
+        //tabela de processos
+        tProcesso  = new JTable();
+        tProcesso.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        Object[] columns = {"Processo", "Chegada", "Estado", "Prioridade", "Duração"};
+        DefaultTableModel model = new DefaultTableModel(rows, columns);
+        //model.setColumnIdentifiers(columns);
+        tProcesso.setModel(model);
+        
+        spProcesso = new JScrollPane(tProcesso);
+        spProcesso.setHorizontalScrollBarPolicy(ScrollPaneLayout.HORIZONTAL_SCROLLBAR_ALWAYS);
+        spProcesso.setVerticalScrollBarPolicy(ScrollPaneLayout.VERTICAL_SCROLLBAR_AS_NEEDED);
+        spProcesso.setPreferredSize(new Dimension(100, 100));
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.weighty = 500;
+        constraints.weightx = 1;
+        addComponent(spProcesso, 0, 0, 1, 1);
+        
+        //botoes
+        
+        
         //filas de pronto
         panelF1 = new PanelFila();
         spFilas = new JScrollPane(panelF1);
         spFilas.setHorizontalScrollBarPolicy(ScrollPaneLayout.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         spFilas.setVerticalScrollBarPolicy(ScrollPaneLayout.VERTICAL_SCROLLBAR_NEVER);
         spFilas.setBorder(borda);
+        spFilas.setPreferredSize(new Dimension(350, 100));
         constraints.fill = GridBagConstraints.BOTH;
         constraints.weighty = 500;
         constraints.weightx = 1;
-        addComponent(spFilas, 0, 0, 1, 1);
+        addComponent(spFilas, 0, 1, 2, 1);
         
         //Cpus
         pCpus = new PanelCpus();
         pCpus.setBackground(Color.lightGray);
         pCpus.setBorder(borda);
-        pCpus.setMinimumSize(new Dimension(300, 200));
         constraints.weightx = 1;
-        addComponent(pCpus, 0, 1, 1, 1);
+        addComponent(pCpus, 0, 3, 1, 1);
         
         
         //Timeline
@@ -288,7 +311,7 @@ public class Escalonador extends JFrame implements Runnable{
         spTimeline.setVerticalScrollBarPolicy(ScrollPaneLayout.VERTICAL_SCROLLBAR_ALWAYS);
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.weighty = 0;
-        addComponent(spTimeline, 1, 0, 2, 1);
+        addComponent(spTimeline, 1, 0, 4, 1);
     }
     
     //controlar restrincoes
@@ -318,6 +341,17 @@ public class Escalonador extends JFrame implements Runnable{
            p.printProcesso();
            id++;
        }
+       //criar as linhas para a tabela
+       rows = new Object[fe.size()][5];
+       Processo[] pros = fe.toArray(new Processo[fe.size()]);
+       for (int i = 0; i < fe.size(); i++){
+           rows[i][0] = pros[i].nome;
+           rows[i][1] = pros[i].tempoC;
+           rows[i][2] = pros[i].estado;
+           rows[i][3] = pros[i].pri;
+           rows[i][4] = pros[i].tProc;
+       }
+       
        uDeProcss.setSize(4);
        inicializaVectorCpu();
        
