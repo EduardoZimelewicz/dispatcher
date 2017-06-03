@@ -1,5 +1,6 @@
 package escalonador;
 import escalonador.Estados;
+import java.awt.Color;
 
 public class Processo {
     public String nome;
@@ -14,6 +15,7 @@ public class Processo {
     Estados estado;
     public int serTotal;
     public boolean utCpu;
+    public Color cor;
     
     
     public Processo(){

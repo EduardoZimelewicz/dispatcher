@@ -11,6 +11,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.Random;
 import javax.swing.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,6 +22,10 @@ import javax.swing.table.DefaultTableModel;
 public class Escalonador extends JFrame implements Runnable{
     
 //<editor-fold defaultstate="collapsed" desc="variaveis do escalonador">
+    //estatos do escalonador
+    public static int PAUSADO = 0;
+    public static int EXECUTANDO = 1;
+    
     public static int impressora = 2;
     public static int scanner = 1;
     public static int cd = 2;
@@ -232,6 +237,10 @@ public class Escalonador extends JFrame implements Runnable{
         p.nScnr = Integer.parseInt(lineArray[5]);
         p.nMdm = Integer.parseInt(lineArray[6]);
         p.nCds = Integer.parseInt(lineArray[7]);
+        Random r = new Random();
+        p.cor = new Color(r.nextInt(5) * 45, 
+                r.nextInt(5) * 45,
+                r.nextInt(5) * 45);
         return p;
     }
 //</editor-fold>

@@ -42,7 +42,7 @@ public class PanelCpus extends JPanel {
             //desenha os processo
             if (cpus[i].getProcssCur() != null) {
                 char prosNome[] = cpus[i].getProcssCur().nome.toCharArray();
-                g.setColor(Color.BLUE);
+                g.setColor(cpus[i].getProcssCur().cor);
                 g.fillRect(posX + 100, posY + 25, 50, 50);
                 g.setColor(Color.BLACK);
                 g.drawRect(posX + 100, posY + 25, 50, 50);

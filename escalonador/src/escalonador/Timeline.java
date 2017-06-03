@@ -21,7 +21,7 @@ public class Timeline extends JPanel {
         for (int i = 0; i < cpu.historico.size(); i++) {
             g.setFont(new Font("TimesRoman", Font.PLAIN, 21)); 
             posX = x + 75 + (i * 50);
-            g.setColor(Color.BLUE);
+            g.setColor(cpu.historico.get(i).cor);
             g.fillRect(posX, posY, 50, 50);
             g.setColor(Color.BLACK);
             g.drawRect(posX, posY, 50, 50);

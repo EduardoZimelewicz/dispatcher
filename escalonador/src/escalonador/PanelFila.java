@@ -26,7 +26,7 @@ public class PanelFila extends JPanel {
             posX = x + 75 + (i * 50);
             //posY = y + 25;
             char prosNome[] = pros[i].nome.toCharArray();
-            g.setColor(Color.BLUE);
+            g.setColor(pros[i].cor);
             g.fillRect(posX, posY, 50, 50);
             g.setColor(Color.BLACK);
             g.drawRect(posX, posY, 50, 50);
