@@ -63,6 +63,7 @@ public class Escalonador extends JFrame implements Runnable{
     private Timeline timeline;
     private JTable tProcesso;
     private JScrollPane spProcesso;
+    private PanelMemoria pMemoria;
 //</editor-fold>
     
 //<editor-fold defaultstate="collapsed" desc="Escalonador">
@@ -310,17 +311,24 @@ public class Escalonador extends JFrame implements Runnable{
         addComponent(pCpus, 0, 3, 1, 1);
         
         
+        //Memoria
+        pMemoria = new PanelMemoria();
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.weighty = 60;
+        constraints.weightx = 1;
+        addComponent(pMemoria, 1, 0, 4, 1);
+        
         //Timeline
         timeline = new Timeline();
         timeline.setPreferredSize(new Dimension(100, 400));
         spTimeline = new JScrollPane(timeline);
         spTimeline.setBorder(borda2);
-        spTimeline.setPreferredSize(new Dimension(100, 200));
+        spTimeline.setPreferredSize(new Dimension(100, 150));
         spTimeline.setHorizontalScrollBarPolicy(ScrollPaneLayout.HORIZONTAL_SCROLLBAR_ALWAYS);
         spTimeline.setVerticalScrollBarPolicy(ScrollPaneLayout.VERTICAL_SCROLLBAR_ALWAYS);
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.weighty = 0;
-        addComponent(spTimeline, 1, 0, 4, 1);
+        addComponent(spTimeline, 2, 0, 4, 1);
     }
     
     //controlar restrincoes
@@ -420,6 +428,7 @@ public class Escalonador extends JFrame implements Runnable{
                 //System.out.println(panelF1.getSize());
                panelF1.repaint();
                pCpus.repaint();
+               pMemoria.repaint();
                timeline.repaint();
            }
            catch (Exception e) {
