@@ -64,16 +64,18 @@ public class Memoria {
         Queue <Processo> f = new LinkedList<Processo>();
         for(int i = 0; i < quadros.size(); i++){
             if(quadros.elementAt(i) != null){
-                if(quadros.elementAt(i).pri != 0){
+                if(quadros.elementAt(i).pri != 0 && quadros.elementAt(i).estado == Estados.EXECUTANDO){
                     if(!f.contains(quadros.elementAt(i))){
                         f.add(quadros.elementAt(i));
                         buscaCpuComPrcss(quadros.elementAt(i));
                     }
                     
                     quadros.elementAt(i).utCpu = false;
+                    quadros.elementAt(i).estado = Estados.PRONTO;
                 }
             }
         }
+        Escalonador.cpu = Escalonador.cpu + f.size();
         return f;
     }
         
@@ -87,6 +89,7 @@ public class Memoria {
                         buscaCpuOciosa(quadros.elementAt(i));
                     }
                     quadros.elementAt(i).utCpu = true;
+                    quadros.elementAt(i).estado = Estados.EXECUTANDO;
                 }
             }
         }

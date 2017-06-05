@@ -32,6 +32,8 @@ public class Escalonador extends JFrame implements Runnable{
     public static int modem = 1;
     public static int cpu = 4;
     public static int clock = 0;
+    public static int control = 0; //controle de filas
+    public static boolean trocaDeFila = false; //controle de troca
     public static Vector <Cpu> uDeProcss = new Vector<Cpu>();
     
     public static Queue <Processo> fe = new LinkedList<Processo>();
@@ -48,7 +50,7 @@ public class Escalonador extends JFrame implements Runnable{
 //<editor-fold defaultstate="collapsed" desc="variaveis da interface">
     public static final int JANELA_LARGURA = 1200;
     public static final int JANELA_ALTURA = 720;
-    public static int DELAY = 1000; //valor em milesegundos
+    public static int DELAY = 2000; //valor em milesegundos
     private static  Object[][] rows;
     
     //layout
@@ -165,68 +167,103 @@ public class Escalonador extends JFrame implements Runnable{
                 m.alocarP(f.remove());
             }
             
-            if(clock%2 == 0){
-                f1.addAll(m.retiraDaCPU());
-                Escalonador.cpu++;
-            }
         }
         
-        if(f.isEmpty() && !f1.isEmpty()){
-            if(m.prcssEstaNaMe(f1.element())){
-                m.colocaNaCPU(f1.element());
-                Escalonador.cpu--;
-                f1.remove();
+        if(clock%2 == 0 && clock >= 2 && control == 0 && trocaDeFila == false){
+                control = 1;
+                f1.addAll(m.retiraDaCPU());
+                trocaDeFila = true;
+            }
+        
+        if(f.isEmpty() && !f1.isEmpty() && trocaDeFila == false){
+            
+            while(!f1.isEmpty()){
+                if(m.prcssEstaNaMe(f1.element()) && Escalonador.cpu > 0){
+                    m.colocaNaCPU(f1.element());
+                    Escalonador.cpu--;
+                    f1.remove();
+                }
+                if(Escalonador.cpu == 0)
+                    break;
             }
             
             if(!f1.isEmpty() && f1.element() != null){
                 if(f1.element().estado == Estados.FINALIZADO)
                     f1.remove();
+                else if(f2.contains(f1.element()))
+                    f2.remove(f1.element());
+                else if(f3.contains(f1.element()))
+                    f3.remove(f1.element());
             }
-            
-            if(clock%2 == 0){
-                f2.addAll(m.retiraDaCPU());
-                Escalonador.cpu++;
-            }
+            trocaDeFila = true;
         }
         
-        else if(f1.isEmpty() && !f2.isEmpty()){
-            if(m.prcssEstaNaMe(f2.element())){
-                m.colocaNaCPU(f2.element());
-                Escalonador.cpu--;
-                f2.remove();
+        if(clock%2 == 0 && control == 1 && trocaDeFila == false){
+            f2.addAll(m.retiraDaCPU());
+            trocaDeFila = true;
+            control = 2;
+        }
+                    
+        else if(f1.isEmpty() && !f2.isEmpty() && trocaDeFila == false){
+            while(!f2.isEmpty()){
+                if(m.prcssEstaNaMe(f2.element()) && Escalonador.cpu > 0){
+                    m.colocaNaCPU(f2.element());
+                    Escalonador.cpu--;
+                    f2.remove();
+                }
+                if(Escalonador.cpu == 0)
+                    break;
             }
             
             if(!f2.isEmpty() && f2.element() != null) {
                 if(f2.element().estado == Estados.FINALIZADO)
                     f2.remove();
+                else if(f1.contains(f2.element()))
+                    f1.remove(f2.element());
+                else if(f3.contains(f2.element()))
+                    f3.remove(f2.element());
             }
-            
-            if(clock%2 == 0){
-                f3.addAll(m.retiraDaCPU());
-                Escalonador.cpu++;
-            }
+            trocaDeFila = true;
         }
         
-        else if(f1.isEmpty() && f2.isEmpty() && !f3.isEmpty()){
+        if(clock%2 == 0 && control == 2 && trocaDeFila == false){
+            f3.addAll(m.retiraDaCPU());
+            trocaDeFila = true;
+            control = 3;
+        }
             
-            if(m.prcssEstaNaMe(f3.element())){
-                m.colocaNaCPU(f3.element());
-                Escalonador.cpu--;
-                f3.remove();
+        else if(f1.isEmpty() && f2.isEmpty() && !f3.isEmpty() && trocaDeFila == false){
+            
+            while(!f3.isEmpty()){
+                if(m.prcssEstaNaMe(f3.element()) && Escalonador.cpu > 0){
+                    m.colocaNaCPU(f3.element());
+                    Escalonador.cpu--;
+                    f3.remove();
+                }
+                if(Escalonador.cpu == 0)
+                    break;
             }
             
             
             if(!f3.isEmpty() && f3.element() != null){
                 if(f3.element().estado == Estados.FINALIZADO)
                     f3.remove();
+                else if(f2.contains(f3.element()))
+                    f2.remove(f3.element());
+                else if(f1.contains(f3.element()))
+                    f1.remove(f3.element());
             }
-            
-            if(clock%2 == 0){
-                f1.addAll(m.retiraDaCPU());
-                Escalonador.cpu++;
-            }
+            trocaDeFila = true;
         }
+        
+        if(clock%2 == 0 && control == 3 && trocaDeFila == false){
+            f1.addAll(m.retiraDaCPU());
+            control = 1;
+            trocaDeFila = true;
+        }
+        
         m2.swapIn(m);
+        trocaDeFila = false;
     }
     
     public static Processo createProcess(String [] lineArray, Processo p){
@@ -378,9 +415,6 @@ public class Escalonador extends JFrame implements Runnable{
 
     @Override
     public void run() {
-       
-       //Thread feedback = new Thread(() ->feedBack(fu, f1, f2, f3));
-       //Thread fcfs = new Thread(() ->fcFS(ftr, memoria));
               
        while (!fe.isEmpty() || !fu.isEmpty() || !ftr.isEmpty() || memoria.temPrcssMemoria()){
            try {
