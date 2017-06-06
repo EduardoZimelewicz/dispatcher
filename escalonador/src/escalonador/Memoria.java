@@ -113,10 +113,15 @@ public class Memoria {
                         }
                         
                         alocarP(temp_p);
+                        Escalonador.buscaCpuComPrcss(temp_p);
+                        temp_p.utCpu = false;
+                        m.tamanhoOcupado = m.tamanhoOcupado - temp_p.tam;
                         
                         for(int k = i; k < quadros.size(); k++){
-                            if(m.quadros.elementAt(k).equals(temp_p)){
-                                m.quadros.set(i, null);
+                            if(m.quadros.elementAt(i) != null){
+                                if(m.quadros.elementAt(k).equals(temp_p)){
+                                    m.quadros.set(i, null);
+                                }
                             }
                         }
                         break;
@@ -131,7 +136,7 @@ public class Memoria {
         Processo temp_p = new Processo();
         for(int i = 0; i < quadros.size(); i++){
             if(quadros.elementAt(i) != null){
-                if(freeToProcess(quadros.elementAt(i))){
+                if(freeToProcess(quadros.elementAt(i)) && Escalonador.temCpuOciosa()){
                    temp_p = quadros.elementAt(i);
                    System.out.println(temp_p.nome + " colocado de volta na memória");
                    if(temp_p.estado == Estados.BLOQUEADOSUSPENSO){
@@ -142,12 +147,17 @@ public class Memoria {
                         temp_p.estado = Estados.PRONTO;
                     }
                    
+                   
                    m.alocarP(temp_p);
+                   Escalonador.buscaCpuOciosa(temp_p);
+                   temp_p.utCpu = true;
                 }
                 
                 for(int k = i; k < quadros.size(); k++){
-                    if(quadros.elementAt(i).nome.equals(temp_p.nome)){
-                        quadros.set(i, null);
+                    if(quadros.elementAt(i) != null){
+                        if(quadros.elementAt(i).nome.equals(temp_p.nome)){
+                            quadros.set(i, null);
+                        }
                     }
                 }
                 break;
@@ -199,12 +209,14 @@ public class Memoria {
     }
     
     public void setTempoSer(){
+        Processo temp_p = new Processo(); 
         for(int i = 0; i < quadros.size(); i++){
-            if(quadros.elementAt(i) != null){
+            if(quadros.elementAt(i) != null && !quadros.elementAt(i).nome.equals(temp_p.nome)){
                 if(quadros.elementAt(i).serTotal < quadros.elementAt(i).tProc){
                     if(quadros.elementAt(i).utCpu)
                         quadros.elementAt(i).serTotal++;
                 }
+                temp_p = quadros.elementAt(i);
             }
        }
     }

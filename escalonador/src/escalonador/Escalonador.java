@@ -83,11 +83,21 @@ public class Escalonador extends JFrame implements Runnable{
         }
     }
     
-    public static boolean buscaCpuOciosa(Processo p){
+    public static void buscaCpuOciosa(Processo p){
         for(int i = 0; i < uDeProcss.size(); i++){
             if(uDeProcss.elementAt(i) != null){
                 if(uDeProcss.elementAt(i).estado == 0){
                     uDeProcss.elementAt(i).excProcss(p);
+                    break;
+                }
+            }
+        }
+    }
+    
+    public static boolean temCpuOciosa(){
+        for(int i = 0; i < uDeProcss.size(); i++){
+            if(uDeProcss.elementAt(i) != null){
+                if(uDeProcss.elementAt(i).estado == 0){
                     return true;
                 }
             }
@@ -108,10 +118,11 @@ public class Escalonador extends JFrame implements Runnable{
     }
     
     public static boolean recursosDisp(Processo p){
-        if(Escalonador.cpu != 0 && buscaCpuOciosa(p)){
+        if(Escalonador.cpu != 0 && temCpuOciosa()){
             Escalonador.cpu--;
             p.utCpu = true;
             if(p.pri == 0){
+                buscaCpuOciosa(p);
                 return true;
             }
             
@@ -120,12 +131,14 @@ public class Escalonador extends JFrame implements Runnable{
                     if((p.nCds <= Escalonador.cd && Escalonador.cd != 0) || p.nCds == 0){
                         if((p.nMdm <= Escalonador.modem && Escalonador.modem != 0) || p.nMdm == 0){
                             entregaRecrs(p);
+                            buscaCpuOciosa(p);
                             return true;
                         }
                     }
                 }
             }
         }
+        Escalonador.cpu++;
         return false;
     }
     
@@ -150,7 +163,7 @@ public class Escalonador extends JFrame implements Runnable{
                 m.alocarP(f.remove());
             }
             
-            if(m.memoriaCheia()){
+            else if(m.memoriaCheia()){
                 m2.swapOut(f.element(), m);
                 if(m.freeToProcess(f.element())){
                     System.out.println(f.element().nome + " " + "carregado para memória");
@@ -183,6 +196,10 @@ public class Escalonador extends JFrame implements Runnable{
                     Escalonador.cpu--;
                     f1.remove();
                 }
+                
+                else if(m2.prcssEstaNaMe(f1.element()))
+                    f1.remove();
+                
                 if(Escalonador.cpu == 0)
                     break;
             }
@@ -211,6 +228,10 @@ public class Escalonador extends JFrame implements Runnable{
                     Escalonador.cpu--;
                     f2.remove();
                 }
+                
+                else if(m2.prcssEstaNaMe(f2.element()))
+                    f2.remove();
+                
                 if(Escalonador.cpu == 0)
                     break;
             }
@@ -240,6 +261,10 @@ public class Escalonador extends JFrame implements Runnable{
                     Escalonador.cpu--;
                     f3.remove();
                 }
+                
+                else if(m2.prcssEstaNaMe(f3.element()))
+                    f3.remove();
+                
                 if(Escalonador.cpu == 0)
                     break;
             }
