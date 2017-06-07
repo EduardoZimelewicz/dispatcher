@@ -26,10 +26,16 @@ public class Escalonador extends JFrame implements Runnable{
     public static int PAUSADO = 0;
     public static int EXECUTANDO = 1;
     
-    public static int impressora = 2;
-    public static int scanner = 1;
-    public static int cd = 2;
-    public static int modem = 1;
+    //recursos
+    public static final int IMPRESSORA = 2;
+    public static final int SCANNER = 2;
+    public static final int CD = 2;
+    public static final int MODEM = 2;
+    public static int impressora = IMPRESSORA;
+    public static int scanner = SCANNER;
+    public static int cd = CD;
+    public static int modem = MODEM;
+    
     public static int cpu = 4;
     public static int clock = 0;
     public static int control = 0; //controle de filas
@@ -66,6 +72,7 @@ public class Escalonador extends JFrame implements Runnable{
     private JTable tProcesso;
     private JScrollPane spProcesso;
     private PanelMemoria pMemoria;
+    private PanelRecursos pRecursos;
 //</editor-fold>
     
 //<editor-fold defaultstate="collapsed" desc="Escalonador">
@@ -346,7 +353,7 @@ public class Escalonador extends JFrame implements Runnable{
         spProcesso.setVerticalScrollBarPolicy(ScrollPaneLayout.VERTICAL_SCROLLBAR_AS_NEEDED);
         spProcesso.setPreferredSize(new Dimension(100, 100));
         constraints.fill = GridBagConstraints.BOTH;
-        constraints.weighty = 500;
+        constraints.weighty = 200;
         constraints.weightx = 1;
         addComponent(spProcesso, 0, 0, 1, 1);
         
@@ -372,13 +379,20 @@ public class Escalonador extends JFrame implements Runnable{
         constraints.weightx = 1;
         addComponent(pCpus, 0, 3, 1, 1);
         
+        //Recursos
+        pRecursos = new PanelRecursos();
+        pRecursos.setBackground(new Color(144,238,144));
+        pRecursos.setBorder(borda);
+        constraints.weightx = 1;
+        addComponent(pRecursos, 0, 4, 1, 1);
+        
         
         //Memoria
         pMemoria = new PanelMemoria();
         constraints.fill = GridBagConstraints.BOTH;
         constraints.weighty = 60;
         constraints.weightx = 1;
-        addComponent(pMemoria, 1, 0, 4, 1);
+        addComponent(pMemoria, 1, 0, 5, 1);
         
         //Timeline
         timeline = new Timeline();
@@ -390,7 +404,7 @@ public class Escalonador extends JFrame implements Runnable{
         spTimeline.setVerticalScrollBarPolicy(ScrollPaneLayout.VERTICAL_SCROLLBAR_ALWAYS);
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.weighty = 0;
-        addComponent(spTimeline, 2, 0, 4, 1);
+        addComponent(spTimeline, 2, 0, 5, 1);
     }
     
     //controlar restrincoes
@@ -487,6 +501,7 @@ public class Escalonador extends JFrame implements Runnable{
                 //System.out.println(panelF1.getSize());
                panelF1.repaint();
                pCpus.repaint();
+               pRecursos.repaint();
                pMemoria.repaint();
                timeline.repaint();
            }
