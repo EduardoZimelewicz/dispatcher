@@ -42,6 +42,8 @@ public class Escalonador extends JFrame implements Runnable{
     public static boolean trocaDeFila = false; //controle de troca
     public static Vector <Cpu> uDeProcss = new Vector<Cpu>();
     
+    //estruturas de dados dos processos
+    public static Processo[] pros;
     public static Queue <Processo> fe = new LinkedList<Processo>();
     public static Queue <Processo> ftr = new LinkedList<Processo>();
     public static Queue <Processo> fu = new LinkedList<Processo>();
@@ -417,76 +419,83 @@ public class Escalonador extends JFrame implements Runnable{
         layout.setConstraints(component, constraints);
         add(component);
     }
-//</editor-fold>
     
-    public static void main(String[] args) throws FileNotFoundException{
-       File file = new File("src/escalonador/processos3.txt");
-       Scanner scanner = new Scanner(file);
-       
-       int id = 1;
-       while(scanner.hasNextLine()){
-           Processo p = new Processo();
-           p.nome = "P" + id;
-           String line = scanner.nextLine();
-           String[] lineArray = line.split(", ");
-           p = createProcess(lineArray, p);
-           fe.add(p);
-           p.printProcesso();
-           id++;
-       }
-       //criar as linhas para a tabela
-       rows = new Object[fe.size()][5];
-       Processo[] pros = fe.toArray(new Processo[fe.size()]);
-       for (int i = 0; i < fe.size(); i++){
+    //criar as linhas para a tabela
+    public static void criarLinhas() {
+       rows = new Object[pros.length][5];
+       for (int i = 0; i < pros.length; i++){
            rows[i][0] = pros[i].nome;
            rows[i][1] = pros[i].tempoC;
            rows[i][2] = pros[i].estado;
            rows[i][3] = pros[i].pri;
            rows[i][4] = pros[i].tProc;
        }
-       
-       uDeProcss.setSize(4);
-       inicializaVectorCpu();
-       
-       new Escalonador().setVisible(true);
-       
-   }
+    }
+//</editor-fold>
+    
+//<editor-fold defaultstate="collapsed" desc="Metodo main">
+    public static void main(String[] args) throws FileNotFoundException{
+        File file = new File("src/escalonador/processos3.txt");
+        Scanner scanner = new Scanner(file);
+        
+        int id = 1;
+        while(scanner.hasNextLine()){
+            Processo p = new Processo();
+            p.nome = "P" + id;
+            String line = scanner.nextLine();
+            String[] lineArray = line.split(", ");
+            p = createProcess(lineArray, p);
+            fe.add(p);
+            p.printProcesso();
+            id++;
+        }
+        pros = fe.toArray(new Processo[fe.size()]);
+        criarLinhas();
+        
+        uDeProcss.setSize(4);
+        inicializaVectorCpu();
+        
+        new Escalonador().setVisible(true);
+        
+    }
+//</editor-fold>
 
+//<editor-fold defaultstate="collapsed" desc="Metodo run da thread">
     @Override
     public void run() {
-              
-       while (!fe.isEmpty() || !fu.isEmpty() || !ftr.isEmpty() || memoria.temPrcssMemoria()){
-           try {
+        
+        while (!fe.isEmpty() || !fu.isEmpty() || !ftr.isEmpty() || memoria.temPrcssMemoria()){
+            try {
                 Thread.sleep(DELAY);
-
-                 if(!fe.isEmpty()){
-                   if((fe.element().tempoC <= clock) && recursosDisp(fe.element())){
-                       if(fe.element().pri != 0) 
-                           fu.add(fe.remove());
-                       else
-                           ftr.add(fe.remove());
-                   }
-                   
-                 }
-
-                 if(memoria.temEstFinalizado()){
-                     memoria.rmvEstadoFinalizado();
-                     Escalonador.cpu++;
-                 }
-                 
-                 if(memSec.temEstFinalizado()){
-                     memSec.rmvEstadoFinalizado();
-                     Escalonador.cpu++;
-                 }
-
-                if(!ftr.isEmpty() || memoria.temPrcssFTRMemoria()){
-                  fcFS(ftr,memoria, memSec);
+                
+                if(!fe.isEmpty()){
+                    if((fe.element().tempoC <= clock) && recursosDisp(fe.element())){
+                        if(fe.element().pri != 0)
+                            fu.add(fe.remove());
+                        else
+                            ftr.add(fe.remove());
+                    }
+                    
                 }
-
+                
+                if(memoria.temEstFinalizado()){
+                    memoria.rmvEstadoFinalizado();
+                    Escalonador.cpu++;
+                }
+                
+                if(memSec.temEstFinalizado()){
+                    memSec.rmvEstadoFinalizado();
+                    Escalonador.cpu++;
+                }
+                
+                if(!ftr.isEmpty() || memoria.temPrcssFTRMemoria()){
+                    fcFS(ftr,memoria, memSec);
+                }
+                
                 else if((ftr.isEmpty() && !fu.isEmpty()) || memoria.temPrcssFUMemoria()){
                     feedBack(fu, f1, f2, f3, memoria, memSec);
                 }
-
+                
                 if(memoria.tamanhoOcupado > 0){
                     memoria.setTempoSer();
                 }
@@ -498,18 +507,23 @@ public class Escalonador extends JFrame implements Runnable{
                 clock++;
                 
                 //interface
-                //System.out.println(panelF1.getSize());
-               panelF1.repaint();
-               pCpus.repaint();
-               pRecursos.repaint();
-               pMemoria.repaint();
-               timeline.repaint();
-           }
-           catch (Exception e) {
-               System.out.println(e.getMessage());
-           }
-       }
+                criarLinhas();
+                Object[] columns = {"Processo", "Chegada", "Estado", "Prioridade", "Duração"};
+                DefaultTableModel model = new DefaultTableModel(rows, columns);
+                //model.setColumnIdentifiers(columns);
+                tProcesso.setModel(model);
+                panelF1.repaint();
+                pCpus.repaint();
+                pRecursos.repaint();
+                pMemoria.repaint();
+                timeline.repaint();
+            }
+            catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
         
     }
+//</editor-fold>
     
 }
