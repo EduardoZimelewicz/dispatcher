@@ -5,10 +5,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import javax.swing.JPanel;
-import java.util.Queue;
-import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class PanelFila extends JPanel {
     
@@ -44,19 +40,24 @@ public class PanelFila extends JPanel {
     public void paint(Graphics g) {
         super.paint(g);
         //desenhar fila f1
-        Processo processos[] = Escalonador.f1.toArray(
+        Processo processos[] = Escalonador.ftr.toArray(
+                new Processo[Escalonador.ftr.size()]);
+        paintFila(g, "Treal", processos, 0, 0);
+        
+        //desenhar fila f1
+        processos = Escalonador.f1.toArray(
                 new Processo[Escalonador.f1.size()]);
-        paintFila(g, "fila 1", processos, 0, 0);
+        paintFila(g, "Fila 1", processos, 0, 100);
         
         //desenhar fila f2
         processos = Escalonador.f2.toArray(
                 new Processo[Escalonador.f2.size()]);
-        paintFila(g, "Fila 2", processos, 0, 100);
+        paintFila(g, "Fila 2", processos, 0, 200);
         
         //desenhar fila f3
         processos = Escalonador.f3.toArray(
                 new Processo[Escalonador.f3.size()]);
-        paintFila(g, "Fila 3", processos, 0, 200);
+        paintFila(g, "Fila 3", processos, 0, 300);
         
         g.dispose();
     }
