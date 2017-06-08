@@ -60,11 +60,67 @@ public class Memoria {
         return false;
     }
     
+    public boolean prcssTemIO (Processo p){
+        if(p.nCds >= 1 || p.nImpr >=1 || p.nMdm >= 1 || p.nScnr >= 1)
+            return true;
+        return false;
+    }
+    
+    public Processo rtrnPrcssPronto(){
+        for(int i = 0; i < quadros.size(); i++){
+            if(quadros.elementAt(i) != null){
+                if(quadros.elementAt(i).estado == Estados.PRONTO){
+                    return quadros.elementAt(i);
+                }
+            }
+        }
+        return null;
+    }
+    
+    public void bloqueiaProcss(int pri){
+        for(int i = 0; i < quadros.size(); i++){
+            if(quadros.elementAt(i) != null){
+                if(quadros.elementAt(i).pri == pri && prcssTemIO(quadros.elementAt(i))){
+                    if(quadros.elementAt(i).estado != Estados.BLOQUEADO){
+                        System.out.println(quadros.elementAt(i).nome + " Bloqueado");
+                        buscaCpuComPrcss(quadros.elementAt(i));
+                        for(int k = i; k < quadros.size(); k++){
+                            if(quadros.elementAt(k) != null){
+                                if(quadros.elementAt(k).nome.equals(quadros.elementAt(i).nome)){
+                                    quadros.elementAt(k).utCpu = false;
+                                    quadros.elementAt(k).estado = Estados.BLOQUEADO;
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    public void desbloqProcss(int pri){
+        for(int i = 0; i < quadros.size(); i++){
+            if(quadros.elementAt(i) != null && quadros.elementAt(i).pri == pri){
+                if(quadros.elementAt(i).estado == Estados.BLOQUEADO){
+                    System.out.println(quadros.elementAt(i).nome + " Desbloqueado");
+                    for(int k = i; k < quadros.size(); k++){
+                        if(quadros.elementAt(k) != null) 
+                            if(quadros.elementAt(k).nome.equals(quadros.elementAt(i).nome)){
+                                quadros.elementAt(k).estado = Estados.PRONTO;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    
     public Queue retiraDaCPU(){
         Queue <Processo> f = new LinkedList<Processo>();
         for(int i = 0; i < quadros.size(); i++){
             if(quadros.elementAt(i) != null){
-                if(quadros.elementAt(i).pri != 0 && quadros.elementAt(i).estado == Estados.EXECUTANDO){
+                if(quadros.elementAt(i).pri != 0 && quadros.elementAt(i).estado != Estados.BLOQUEADO){
                     if(!f.contains(quadros.elementAt(i))){
                         f.add(quadros.elementAt(i));
                         buscaCpuComPrcss(quadros.elementAt(i));
@@ -82,7 +138,7 @@ public class Memoria {
     public void colocaNaCPU(Processo p){
         Queue <Processo> f = new LinkedList<Processo>();
         for(int i = 0; i < quadros.size(); i++){
-            if(quadros.elementAt(i) != null){
+            if(quadros.elementAt(i) != null && quadros.elementAt(i).estado != Estados.BLOQUEADO){
                 if(quadros.elementAt(i).nome.equals(p.nome)){
                     if(!f.contains(quadros.elementAt(i))){
                         f.add(quadros.elementAt(i));
@@ -110,11 +166,11 @@ public class Memoria {
                         
                         else {
                             temp_p.estado = Estados.PRONTOSUSPENSO;
+                            Escalonador.buscaCpuComPrcss(temp_p);
+                            temp_p.utCpu = false;
                         }
                         
-                        alocarP(temp_p);
-                        Escalonador.buscaCpuComPrcss(temp_p);
-                        temp_p.utCpu = false;
+                        alocarPB(temp_p);
                         m.tamanhoOcupado = m.tamanhoOcupado - temp_p.tam;
                         
                         for(int k = i; k < quadros.size(); k++){
@@ -141,16 +197,16 @@ public class Memoria {
                    System.out.println(temp_p.nome + " colocado de volta na memória");
                    if(temp_p.estado == Estados.BLOQUEADOSUSPENSO){
                         temp_p.estado = Estados.BLOQUEADO;
-                    }
+                        m.alocarPB(temp_p);
+                   }
                         
                     else{
                         temp_p.estado = Estados.PRONTO;
-                    }
+                        m.alocarP(temp_p);
+                        Escalonador.buscaCpuOciosa(temp_p);
+                        temp_p.utCpu = true;
+                   }
                    
-                   
-                   m.alocarP(temp_p);
-                   Escalonador.buscaCpuOciosa(temp_p);
-                   temp_p.utCpu = true;
                 }
                 
                 for(int k = i; k < quadros.size(); k++){
@@ -211,7 +267,7 @@ public class Memoria {
     public void setTempoSer(){
         Processo temp_p = new Processo(); 
         for(int i = 0; i < quadros.size(); i++){
-            if(quadros.elementAt(i) != null && !quadros.elementAt(i).nome.equals(temp_p.nome)){
+            if(quadros.elementAt(i) != null && !quadros.elementAt(i).nome.equals(temp_p.nome) && quadros.elementAt(i).estado != Estados.BLOQUEADO){
                 if(quadros.elementAt(i).serTotal < quadros.elementAt(i).tProc){
                     if(quadros.elementAt(i).utCpu)
                         quadros.elementAt(i).serTotal++;
@@ -223,6 +279,19 @@ public class Memoria {
     
     public void alocarP(Processo p){
         p.estado = Estados.EXECUTANDO;
+        int nBlocos = p.tam / 64;
+        for(int i = 0; i < quadros.size(); i++){
+            if(quadros.elementAt(i) == null){
+            if(nBlocos > 0){
+               quadros.set(i, p);
+               nBlocos--;
+            }
+            }
+        }
+        this.tamanhoOcupado = this.tamanhoOcupado + p.tam;
+    }
+    
+    public void alocarPB(Processo p){
         int nBlocos = p.tam / 64;
         for(int i = 0; i < quadros.size(); i++){
             if(quadros.elementAt(i) == null){

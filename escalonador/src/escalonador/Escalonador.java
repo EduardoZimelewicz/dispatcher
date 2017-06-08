@@ -211,13 +211,16 @@ public class Escalonador extends JFrame implements Runnable, ActionListener{
         if(f.isEmpty() && !f1.isEmpty() && trocaDeFila == false){
             
             while(!f1.isEmpty()){
-                if(m.prcssEstaNaMe(f1.element()) && Escalonador.cpu > 0){
+                if(m.prcssEstaNaMe(f1.element()) && Escalonador.cpu > 0 && f1.element().estado != Estados.BLOQUEADO){
                     m.colocaNaCPU(f1.element());
                     Escalonador.cpu--;
                     f1.remove();
                 }
                 
                 else if(m2.prcssEstaNaMe(f1.element()))
+                    f1.remove();
+                
+                else if(f1.element().estado == Estados.BLOQUEADO)
                     f1.remove();
                 
                 if(Escalonador.cpu == 0)
@@ -243,13 +246,16 @@ public class Escalonador extends JFrame implements Runnable, ActionListener{
                     
         else if(f1.isEmpty() && !f2.isEmpty() && trocaDeFila == false){
             while(!f2.isEmpty()){
-                if(m.prcssEstaNaMe(f2.element()) && Escalonador.cpu > 0){
+                if(m.prcssEstaNaMe(f2.element()) && Escalonador.cpu > 0 && f2.element().estado != Estados.BLOQUEADO){
                     m.colocaNaCPU(f2.element());
                     Escalonador.cpu--;
                     f2.remove();
                 }
                 
                 else if(m2.prcssEstaNaMe(f2.element()))
+                    f2.remove();
+                
+                else if(f2.element().estado == Estados.BLOQUEADO)
                     f2.remove();
                 
                 if(Escalonador.cpu == 0)
@@ -276,13 +282,16 @@ public class Escalonador extends JFrame implements Runnable, ActionListener{
         else if(f1.isEmpty() && f2.isEmpty() && !f3.isEmpty() && trocaDeFila == false){
             
             while(!f3.isEmpty()){
-                if(m.prcssEstaNaMe(f3.element()) && Escalonador.cpu > 0){
+                if(m.prcssEstaNaMe(f3.element()) && Escalonador.cpu > 0 && f3.element().estado != Estados.BLOQUEADO){
                     m.colocaNaCPU(f3.element());
                     Escalonador.cpu--;
                     f3.remove();
                 }
                 
                 else if(m2.prcssEstaNaMe(f3.element()))
+                    f3.remove();
+                
+                else if(f3.element().estado == Estados.BLOQUEADO)
                     f3.remove();
                 
                 if(Escalonador.cpu == 0)
@@ -545,6 +554,9 @@ public class Escalonador extends JFrame implements Runnable, ActionListener{
 //<editor-fold defaultstate="collapsed" desc="Metodo run da thread">
     @Override
     public void run() {
+        Random r = new Random();
+        int prio = 0;
+        
         while (true) {
         
         while (estado == EXECUTANDO && (!fe.isEmpty() || !fu.isEmpty() || !ftr.isEmpty() || memoria.temPrcssMemoria())){
@@ -560,6 +572,19 @@ public class Escalonador extends JFrame implements Runnable, ActionListener{
                     }
                     
                 }
+                
+                if(clock%3 == 0){
+                     prio = r.nextInt(3) + 1;
+                     memoria.bloqueiaProcss(prio);
+                     memSec.bloqueiaProcss(prio);
+                 }
+
+                 if(clock%4 == 0){
+                     prio = r.nextInt(3) + 1;
+                     memoria.desbloqProcss(prio);
+                     memSec.desbloqProcss(prio);
+                 }
+
                 
                 if(memoria.temEstFinalizado()){
                     memoria.rmvEstadoFinalizado();
@@ -583,9 +608,6 @@ public class Escalonador extends JFrame implements Runnable, ActionListener{
                     memoria.setTempoSer();
                 }
                 
-                if(memSec.tamanhoOcupado > 0){
-                    memSec.setTempoSer();
-                }
                 
                 clock++;
                 
