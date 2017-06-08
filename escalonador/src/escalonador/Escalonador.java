@@ -33,9 +33,9 @@ public class Escalonador extends JFrame implements Runnable, ActionListener{
     
     //recursos
     public static final int IMPRESSORA = 2;
-    public static final int SCANNER = 2;
+    public static final int SCANNER = 1;
     public static final int CD = 2;
-    public static final int MODEM = 2;
+    public static final int MODEM = 1;
     public static int impressora = IMPRESSORA;
     public static int scanner = SCANNER;
     public static int cd = CD;
