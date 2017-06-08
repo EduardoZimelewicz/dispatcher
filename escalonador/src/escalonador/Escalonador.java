@@ -8,9 +8,13 @@ import java.util.Vector;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.Dimension;
+import java.awt.FileDialog;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Random;
 import javax.swing.*;
 import java.util.logging.Level;
@@ -19,12 +23,13 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableModel;
 
-public class Escalonador extends JFrame implements Runnable{
+public class Escalonador extends JFrame implements Runnable, ActionListener{
     
 //<editor-fold defaultstate="collapsed" desc="variaveis do escalonador">
     //estatos do escalonador
     public static int PAUSADO = 0;
     public static int EXECUTANDO = 1;
+    public static int estado;
     
     //recursos
     public static final int IMPRESSORA = 2;
@@ -60,6 +65,8 @@ public class Escalonador extends JFrame implements Runnable{
     public static final int JANELA_ALTURA = 720;
     public static int DELAY = 2000; //valor em milesegundos
     private static  Object[][] rows;
+    public static String path;
+    public Thread t;
     
     //layout
     private GridBagLayout layout;
@@ -75,6 +82,10 @@ public class Escalonador extends JFrame implements Runnable{
     private JScrollPane spProcesso;
     private PanelMemoria pMemoria;
     private PanelRecursos pRecursos;
+    private JPanel pBotoes;
+    private JButton btAbrir;
+    private JButton btSimular;
+    private JButton btPausar;
 //</editor-fold>
     
 //<editor-fold defaultstate="collapsed" desc="Escalonador">
@@ -315,6 +326,28 @@ public class Escalonador extends JFrame implements Runnable{
                 r.nextInt(5) * 45);
         return p;
     }
+    
+    //reseta o escalonador 
+    public static void resetarEscalonador() {
+        impressora = IMPRESSORA;
+        modem = MODEM;
+        cd = CD;
+        scanner = SCANNER;
+        cpu = 4;
+        clock = 0;
+        control = 0; //controle de filas
+        trocaDeFila = false; //controle de troca
+        
+        inicializaVectorCpu();
+        fe = new LinkedList<Processo>();
+        ftr = new LinkedList<Processo>();
+        fu = new LinkedList<Processo>();
+        f1 = new LinkedList<Processo>();
+        f2 = new LinkedList<Processo>();
+        f3 = new LinkedList<Processo>();
+        memoria = new Memoria();
+        memSec = new Memoria();
+    }
 //</editor-fold>
     
 //<editor-fold defaultstate="collapsed" desc="Metodos da interface">
@@ -331,7 +364,8 @@ public class Escalonador extends JFrame implements Runnable{
         
         initComponentes();
         
-        Thread t = new Thread(this);
+        estado = PAUSADO;
+        t = new Thread(this);
         t.start();
         
     }
@@ -339,7 +373,7 @@ public class Escalonador extends JFrame implements Runnable{
     private void initComponentes() {
         
         Border borda = BorderFactory.createEmptyBorder(20, 20, 20, 20);
-        Border borda2 = BorderFactory.createBevelBorder(BevelBorder.RAISED);
+        Border borda2 = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
         
         
         //tabela de processos
@@ -360,33 +394,46 @@ public class Escalonador extends JFrame implements Runnable{
         addComponent(spProcesso, 0, 0, 1, 1);
         
         //botoes
-        
+        pBotoes = new JPanel();
+        btAbrir = new JButton("Abrir");
+        btSimular = new JButton("Simular");
+        btPausar = new JButton("Pausar");
+        btSimular.setEnabled(false);
+        btPausar.setEnabled(false);
+        btAbrir.addActionListener(this);
+        btSimular.addActionListener(this);
+        btPausar.addActionListener(this);
+        pBotoes.add(btAbrir);
+        pBotoes.add(btSimular);
+        pBotoes.add(btPausar);
+        pBotoes.setPreferredSize(new Dimension(100, 100));
+        addComponent(pBotoes, 1, 0, 1, 1);
         
         //filas de pronto
         panelF1 = new PanelFila();
         spFilas = new JScrollPane(panelF1);
         spFilas.setHorizontalScrollBarPolicy(ScrollPaneLayout.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         spFilas.setVerticalScrollBarPolicy(ScrollPaneLayout.VERTICAL_SCROLLBAR_NEVER);
-        spFilas.setBorder(borda);
+        spFilas.setBorder(borda2);
         spFilas.setPreferredSize(new Dimension(350, 100));
         constraints.fill = GridBagConstraints.BOTH;
-        constraints.weighty = 500;
+        constraints.weighty = 400;
         constraints.weightx = 1;
-        addComponent(spFilas, 0, 1, 2, 1);
+        addComponent(spFilas, 0, 1, 2, 2);
         
         //Cpus
         pCpus = new PanelCpus();
         pCpus.setBackground(Color.lightGray);
         pCpus.setBorder(borda);
         constraints.weightx = 1;
-        addComponent(pCpus, 0, 3, 1, 1);
+        addComponent(pCpus, 0, 3, 1, 2);
         
         //Recursos
         pRecursos = new PanelRecursos();
         pRecursos.setBackground(new Color(144,238,144));
         pRecursos.setBorder(borda);
         constraints.weightx = 1;
-        addComponent(pRecursos, 0, 4, 1, 1);
+        addComponent(pRecursos, 0, 4, 1, 2);
         
         
         //Memoria
@@ -394,7 +441,7 @@ public class Escalonador extends JFrame implements Runnable{
         constraints.fill = GridBagConstraints.BOTH;
         constraints.weighty = 60;
         constraints.weightx = 1;
-        addComponent(pMemoria, 1, 0, 5, 1);
+        addComponent(pMemoria, 2, 0, 5, 1);
         
         //Timeline
         timeline = new Timeline();
@@ -406,7 +453,7 @@ public class Escalonador extends JFrame implements Runnable{
         spTimeline.setVerticalScrollBarPolicy(ScrollPaneLayout.VERTICAL_SCROLLBAR_ALWAYS);
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.weighty = 0;
-        addComponent(spTimeline, 2, 0, 5, 1);
+        addComponent(spTimeline, 3, 0, 5, 1);
     }
     
     //controlar restrincoes
@@ -418,6 +465,58 @@ public class Escalonador extends JFrame implements Runnable{
         constraints.gridheight = height;
         layout.setConstraints(component, constraints);
         add(component);
+    }
+    
+    private void carregarArquivo(String path) {
+        try {
+            File file = new File(path);
+            Scanner scanner = new Scanner(file);     
+            resetarEscalonador();
+            int id = 1;
+            while(scanner.hasNextLine()){
+                Processo p = new Processo();
+                p.nome = "P" + id;
+                String line = scanner.nextLine();
+                String[] lineArray = line.split(", ");
+                p = createProcess(lineArray, p);
+                fe.add(p);
+                p.printProcesso();
+                id++;
+            }
+            pros = fe.toArray(new Processo[fe.size()]);
+            criarLinhas();
+
+        }
+        catch (FileNotFoundException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+    
+    //eventos dos botoes
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == btAbrir) {
+            FileDialog dialogAbrir = new FileDialog(new Dialog(this), "Abrir arquivo de processos", FileDialog.LOAD);
+            dialogAbrir.setVisible(true);
+            path = dialogAbrir.getDirectory() + dialogAbrir.getFile();
+            btSimular.setEnabled(true);
+        }
+        else if (e.getSource() == btSimular) {
+            carregarArquivo(path);
+            estado = EXECUTANDO;
+            btPausar.setEnabled(true);
+            btSimular.setEnabled(false);
+        }
+        else if (e.getSource() == btPausar) {
+            if (estado == EXECUTANDO) {
+                estado = PAUSADO;
+                btPausar.setText("Retomar");
+            }
+            else {
+                estado = EXECUTANDO;
+                btPausar.setText("Pausar");
+            }
+        }
     }
     
     //criar as linhas para a tabela
@@ -434,24 +533,7 @@ public class Escalonador extends JFrame implements Runnable{
 //</editor-fold>
     
 //<editor-fold defaultstate="collapsed" desc="Metodo main">
-    public static void main(String[] args) throws FileNotFoundException{
-        File file = new File("src/escalonador/processos3.txt");
-        Scanner scanner = new Scanner(file);
-        
-        int id = 1;
-        while(scanner.hasNextLine()){
-            Processo p = new Processo();
-            p.nome = "P" + id;
-            String line = scanner.nextLine();
-            String[] lineArray = line.split(", ");
-            p = createProcess(lineArray, p);
-            fe.add(p);
-            p.printProcesso();
-            id++;
-        }
-        pros = fe.toArray(new Processo[fe.size()]);
-        criarLinhas();
-        
+    public static void main(String[] args) {
         uDeProcss.setSize(4);
         inicializaVectorCpu();
         
@@ -463,8 +545,9 @@ public class Escalonador extends JFrame implements Runnable{
 //<editor-fold defaultstate="collapsed" desc="Metodo run da thread">
     @Override
     public void run() {
+        while (true) {
         
-        while (!fe.isEmpty() || !fu.isEmpty() || !ftr.isEmpty() || memoria.temPrcssMemoria()){
+        while (estado == EXECUTANDO && (!fe.isEmpty() || !fu.isEmpty() || !ftr.isEmpty() || memoria.temPrcssMemoria())){
             try {
                 Thread.sleep(DELAY);
                 
@@ -522,7 +605,15 @@ public class Escalonador extends JFrame implements Runnable{
                 System.out.println(e.getMessage());
             }
         }
-        
+        if (estado == EXECUTANDO) {
+            estado = PAUSADO;
+            btPausar.setEnabled(false);
+            btSimular.setEnabled(true);
+            JOptionPane.showMessageDialog(this, "Simulação concluida com sucesso!");
+            
+        }
+        this.repaint();
+        }
     }
 //</editor-fold>
     
