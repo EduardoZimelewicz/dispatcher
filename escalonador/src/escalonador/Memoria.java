@@ -234,8 +234,12 @@ public class Memoria {
     public boolean temEstFinalizado(){
         for(int i = 0; i < quadros.size(); i++){
             if(quadros.elementAt(i) != null){
-                if(quadros.elementAt(i).tProc == quadros.elementAt(i).serTotal)
+                if(quadros.elementAt(i).tProc == quadros.elementAt(i).serTotal){
+                    quadros.elementAt(i).turnAround = Escalonador.clock - quadros.elementAt(i).tempoC;
+                    quadros.elementAt(i).tDeFilaNorm = (float)quadros.elementAt(i).turnAround / (float)quadros.elementAt(i).tProc;
                     return true;
+                }
+                    
             }
         }
         return false;
@@ -253,8 +257,6 @@ public class Memoria {
                     if(!termtd.contains(quadros.elementAt(i))){
                         buscaCpuComPrcss(quadros.elementAt(i));
                         System.out.println(quadros.elementAt(i).nome + " " + "finalizado no tempo " + Escalonador.clock);
-                        quadros.elementAt(i).turnAround = quadros.elementAt(i).serTotal - quadros.elementAt(i).tempoC;
-                        quadros.elementAt(i).tDeFilaNorm = (float)(quadros.elementAt(i).turnAround / quadros.elementAt(i).tProc);
                         this.tamanhoOcupado = this.tamanhoOcupado - quadros.elementAt(i).tam;
                         termtd.add(quadros.elementAt(i));
                         Escalonador.atualizaRecrs(quadros.elementAt(i));
@@ -274,6 +276,7 @@ public class Memoria {
                     if(quadros.elementAt(i).utCpu)
                         quadros.elementAt(i).serTotal++;
                 }
+                
                 temp_p = quadros.elementAt(i);
             }
        }
