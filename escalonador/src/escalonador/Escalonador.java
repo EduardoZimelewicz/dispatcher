@@ -388,7 +388,7 @@ public class Escalonador extends JFrame implements Runnable, ActionListener{
         //tabela de processos
         tProcesso  = new JTable();
         tProcesso.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        Object[] columns = {"Processo", "Chegada", "Estado", "Prioridade", "Duração"};
+        Object[] columns = {"Processo", "Chegada", "Estado", "Prioridade", "Duração", "Turnaround", "Normalizado"};
         DefaultTableModel model = new DefaultTableModel(rows, columns);
         //model.setColumnIdentifiers(columns);
         tProcesso.setModel(model);
@@ -396,9 +396,9 @@ public class Escalonador extends JFrame implements Runnable, ActionListener{
         spProcesso = new JScrollPane(tProcesso);
         spProcesso.setHorizontalScrollBarPolicy(ScrollPaneLayout.HORIZONTAL_SCROLLBAR_ALWAYS);
         spProcesso.setVerticalScrollBarPolicy(ScrollPaneLayout.VERTICAL_SCROLLBAR_AS_NEEDED);
-        spProcesso.setPreferredSize(new Dimension(100, 100));
+        spProcesso.setPreferredSize(new Dimension(200, 100));
         constraints.fill = GridBagConstraints.BOTH;
-        constraints.weighty = 200;
+        constraints.weighty = 300;
         constraints.weightx = 1;
         addComponent(spProcesso, 0, 0, 1, 1);
         
@@ -424,9 +424,9 @@ public class Escalonador extends JFrame implements Runnable, ActionListener{
         spFilas.setHorizontalScrollBarPolicy(ScrollPaneLayout.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         spFilas.setVerticalScrollBarPolicy(ScrollPaneLayout.VERTICAL_SCROLLBAR_NEVER);
         spFilas.setBorder(borda2);
-        spFilas.setPreferredSize(new Dimension(350, 100));
+        spFilas.setPreferredSize(new Dimension(300, 100));
         constraints.fill = GridBagConstraints.BOTH;
-        constraints.weighty = 400;
+        constraints.weighty = 300;
         constraints.weightx = 1;
         addComponent(spFilas, 0, 1, 2, 2);
         
@@ -530,13 +530,15 @@ public class Escalonador extends JFrame implements Runnable, ActionListener{
     
     //criar as linhas para a tabela
     public static void criarLinhas() {
-       rows = new Object[pros.length][5];
+       rows = new Object[pros.length][7];
        for (int i = 0; i < pros.length; i++){
            rows[i][0] = pros[i].nome;
            rows[i][1] = pros[i].tempoC;
            rows[i][2] = pros[i].estado;
            rows[i][3] = pros[i].pri;
            rows[i][4] = pros[i].tProc;
+           rows[i][5] = pros[i].turnAround;
+           rows[i][6] = pros[i].tDeFilaNorm;
        }
     }
 //</editor-fold>
@@ -613,7 +615,7 @@ public class Escalonador extends JFrame implements Runnable, ActionListener{
                 
                 //interface
                 criarLinhas();
-                Object[] columns = {"Processo", "Chegada", "Estado", "Prioridade", "Duração"};
+                Object[] columns = {"Processo", "Chegada", "Estado", "Prioridade", "Duração", "Turnaround", "Normalizado"};
                 DefaultTableModel model = new DefaultTableModel(rows, columns);
                 //model.setColumnIdentifiers(columns);
                 tProcesso.setModel(model);
