@@ -12,6 +12,8 @@ public class Processo {
     public int nScnr;
     public int nMdm;
     public int nCds;
+    public int turnAround;
+    public float tDeFilaNorm;
     Estados estado;
     public int serTotal;
     public boolean utCpu;

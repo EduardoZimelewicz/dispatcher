@@ -253,6 +253,8 @@ public class Memoria {
                     if(!termtd.contains(quadros.elementAt(i))){
                         buscaCpuComPrcss(quadros.elementAt(i));
                         System.out.println(quadros.elementAt(i).nome + " " + "finalizado no tempo " + Escalonador.clock);
+                        quadros.elementAt(i).turnAround = quadros.elementAt(i).serTotal - quadros.elementAt(i).tempoC;
+                        quadros.elementAt(i).tDeFilaNorm = (float)(quadros.elementAt(i).turnAround / quadros.elementAt(i).tProc);
                         this.tamanhoOcupado = this.tamanhoOcupado - quadros.elementAt(i).tam;
                         termtd.add(quadros.elementAt(i));
                         Escalonador.atualizaRecrs(quadros.elementAt(i));
